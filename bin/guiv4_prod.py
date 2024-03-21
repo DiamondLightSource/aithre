@@ -12,6 +12,8 @@ import time
 import os
 from guiv4_2_5 import Ui_MainWindow
 from datetime import datetime
+import zmq
+import pickle
 
 
 version = "4.2.5"
@@ -207,7 +209,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.start.clicked.connect(self.oavStart)
         self.ui.stop.clicked.connect(self.oavStop)
         self.ui.snapshot.clicked.connect(self.saveSnapshot)
-        self.ui.autoCenter.clicked.connect(self.autoCenter)
+        self.ui.AutoCenter.clicked.connect(self.autoCenter)
         # RBV updating connections thread
         th2 = RBVThread()
         th2.rbvUpdate.connect(self.updateRBVs)
@@ -469,9 +471,33 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
         
     def autoCenter(self):
-        ret, frame = cv.VideoCapture("http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg")
-        if ret:
-            cv.imwrite((os.path.join(os.path.dirname(os.getcwd), "captures", "autoCenter"), frame))
+        cap = cv.VideoCapture("http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg")
+        ret, frame = cap.read()
+        if ret:            
+            filename = os.path.join(os.path.dirname(os.getcwd()), "captures", "autoCenter", f"{datetime.now().strftime('%d%m%y_%H%M%S')}.jpg")
+            cv.imwrite(filename, frame)
+        # check if murko running
+        # send image to murko and get info
+        try:
+            request_arguments = {}
+            request_arguments["to_predict"] = str(filename)
+            request_arguments['model_img_size'] = (display_height, display_width)
+            request_arguments['save'] = True
+            request_arguments['min_size'] = 64
+            request_arguments['description'] = ['foreground', 'crystal', 'loop_inside', 'loop', ['crystal', 'loop'], ['crystal', 'loop', 'stem']]
+            context = zmq.context()
+            socket = context.socket(zmq.REQ)
+            socket.connect("tcp://bl23i-ea-serv-01.diamond.ac.uk:8901")
+            socket.send(pickle.dumps(request_arguments))
+            raw_predictions = socket.recv()
+            predictions = pickle.load(raw_predictions)
+            print("Prediction successfull")
+        except:
+            print("Could not predict")
+        
+        # move stage to center
+        # rotate 90 and repeat
+        
             
             
         
