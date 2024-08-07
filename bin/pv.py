@@ -82,5 +82,15 @@ robot_proc_dry = "LA18L-MO-ROBOT-01:DRY.PROC"
 robot_gripper_temp = "LA18L-MO-ROBOT-01:GRIPPER_TEMP"
 robot_ip16_force_option = "LA18L-MO-ROBOT-01:IP_16_FORCE_OPTION"
 
+# himag lens
+highmag_zoom = "LA18L-MO-LSR-01:ZOOM"
+highmag_zoom_rbv = "LA18L-MO-LSR-01:ZOOM.RBV"
+highmag_zoom_tw_r = "LA18L-MO-LSR-01:ZOOM.TWR"
+highmag_zoom_tw_f = "LA18L-MO-LSR-01:ZOOM.TWF"
+highmag_focus = "LA18L-MO-LSR-01:FOCUS"
+highmag_focus_rbv = "LA18L-MO-LSR-01:FOCUS.RBV"
+highmag_focus_tw_r = "LA18L-MO-LSR-01:FOCUS.TWR"
+highmag_focus_tw_f = "LA18L-MO-LSR-01:FOCUS.TWF"
+
 #fake zoom pv
 zoom_dud = "LA18L-DI-ZOOM-01:IDONTEXIST"

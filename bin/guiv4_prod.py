@@ -21,8 +21,8 @@ version = "4.2.5"
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
-beamX = 2276
-beamY = 1320
+beamX = 2288
+beamY = 1310
 feed_width = int(ca.caget(pv.oav_max_x))
 display_width = 2012
 display_height = 1518
@@ -240,7 +240,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # gonio rotation buttons
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
         self.ui.buttonFastOmegaTurn.clicked.connect(
-            lambda: ca.caput(pv.omega_velo, 150)
+            lambda: ca.caput(pv.omega_velo, 60)
         )
         self.ui.plusMinus3600.clicked.connect(self.goTopm3600)
         self.ui.minus180.clicked.connect(lambda: self.gonioRotate(-180))
@@ -508,13 +508,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 "autoCenter",
                 f"{datetime.now().strftime('%d%m%y_%H%M%S')}.jpg",
             )
-            cv.imwrite(filename, frame)
+            try:
+                cv.imwrite(filename, frame)
+            except:
+                print("Could not write image file")
         # check if murko running
         # send image to murko and get info
         try:
             request_arguments = {}
             request_arguments["to_predict"] = str(filename)
-            request_arguments["model_img_size"] = (display_height, display_width)
+            #request_arguments["model_img_size"] = (display_height, display_width)
             request_arguments["save"] = True
             request_arguments["min_size"] = 64
             request_arguments["description"] = [
@@ -527,7 +530,8 @@ class MainWindow(QtWidgets.QMainWindow):
             ]
             context = zmq.context()
             socket = context.socket(zmq.REQ)
-            socket.connect("tcp://bl23i-ea-serv-01.diamond.ac.uk:8901")
+            #socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
+            socket.connect("tcp://localhost")
             socket.send(pickle.dumps(request_arguments))
             raw_predictions = socket.recv()
             predictions = pickle.load(raw_predictions)
