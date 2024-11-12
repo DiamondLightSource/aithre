@@ -143,7 +143,7 @@ class RBVThread(QtCore.QThread):
         while True:
             time.sleep(1)
             allRBVsList = []
-            allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
+            allRBVsList += [str(ca.caget(pv.stage_x_rbv))]
             allRBVsList += [str(ca.caget(pv.gonio_y_rbv))]
             allRBVsList += [str(ca.caget(pv.gonio_z_rbv))]
             allRBVsList += [str(ca.caget(pv.omega_rbv))]
@@ -158,7 +158,7 @@ class RBVThread(QtCore.QThread):
                 allRBVsList += "\u274C"
             else:
                 allRBVsList += "\u003F"
-            allRBVsList += [str(ca.caget(pv.stage_x_rbv))]
+            allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
             print(f"lRBVThreadComplete {str(datetime.now())}")
@@ -182,11 +182,11 @@ class robotCheckThread(QtCore.QThread):
 #         self.ThreadActive = True
 #         while self.ThreadActive:
 #             safeUpdateList = []
-#             safeUpdateList += [str(ca.caget(pv.stage_z_rbv))]
+#             safeUpdateList += [str(ca.caget(pv.stage_x_rbv))]
 #             safeUpdateList += [str(ca.caget(pv.gonio_y_rbv))]
 #             safeUpdateList += [str(ca.caget(pv.gonio_z_rbv))]
 #             safeUpdateList += [str(ca.caget(pv.omega_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.stage_x_rbv))]
+#             safeUpdateList += [str(ca.caget(pv.stage_z_rbv))]
 #             safeUpdateList += [str(ca.caget(pv.stage_y_rbv))]
 #             blsafe = all(round(float(safeUpdateList[x]), 3) == 0.00 for x in [0, 1, 2, 3, 4, 5])
 #             if blsafe:
@@ -291,7 +291,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sys.exit()
 
     def returntozero(self):
-        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_z, pv.omega]:
+        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
             ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
@@ -305,9 +305,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def jogSample(self, direction):
         if direction == "left":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.005))
+            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
         elif direction == "right":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.005))
+            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
         elif direction == "up":
             ca.caput(
                 pv.gonio_y,
@@ -370,18 +370,18 @@ class MainWindow(QtWidgets.QMainWindow):
         x = x * feed_display_ratio
         y = event.pos().y()
         y = y * feed_display_ratio
-        x_curr = float(ca.caget(pv.stage_z_rbv))
+        x_curr = float(ca.caget(pv.stage_x_rbv))
         print(x_curr)
         y_curr = float(ca.caget(pv.gonio_y_rbv))
         z_curr = float(ca.caget(pv.gonio_z_rbv))
         omega = float(ca.caget(pv.omega_rbv))
         print("Clicked", x, y)
-        Xmove = x_curr + ((x - beamX) * calibrate)
+        Xmove = x_curr - ((x - beamX) * calibrate)
         print((x - beamX))
         Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - beamY) * calibrate))
         Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - beamY) * calibrate))
         print("Moving", Xmove, Ymove, Zmove)
-        ca.caput(pv.stage_z, Xmove)
+        ca.caput(pv.stage_x, Xmove)
         ca.caput(pv.gonio_y, Ymove)
         ca.caput(pv.gonio_z, Zmove)
 
@@ -473,8 +473,9 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.robot_ip16_force_option, "On")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
         else:
-            ca.caput(pv.robot_ip16_force_option, "No")
-            self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
+            pass
+            #ca.caput(pv.robot_ip16_force_option, "No")
+            #self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
         if ca.caget(pv.robot_pin_mounted) == "Yes":
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
         else:
