@@ -1,14 +1,6 @@
 #!/bin/env python3
-import pv
 import subprocess
-import os
 from subprocess import Popen, PIPE
-import time
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime
-import numpy as np
 
 
 class ca:

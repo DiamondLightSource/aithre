@@ -21,8 +21,8 @@ version = "4.2.5"
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
-beamX = 2288
-beamY = 1310
+beamX = 2210
+beamY = 1186
 feed_width = int(ca.caget(pv.oav_max_x))
 display_width = 2012
 display_height = 1518
@@ -161,18 +161,18 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
-            print(f"lRBVThreadComplete {str(datetime.now())}")
+            #print(f"lRBVThreadComplete {str(datetime.now())}")
 
 
-class robotCheckThread(QtCore.QThread):
-    robotUpdate = QtCore.pyqtSignal(list)
+# class robotCheckThread(QtCore.QThread):
+#     robotUpdate = QtCore.pyqtSignal(list)
 
-    def run(self):
-        while True:
-            time.sleep(1)
-            robotUpdateList = []
-            robotUpdateList += [str(ca.caget(pv.robot_prog_running))]
-            self.robotUpdate.emit(robotUpdateList)
+#     def run(self):
+#         while True:
+#             time.sleep(1)
+#             robotUpdateList = []
+#             robotUpdateList += [str(ca.caget(pv.robot_prog_running))]
+#             self.robotUpdate.emit(robotUpdateList)
 
 
 # class beamlineSafeThread(QtCore.QThread):
@@ -231,16 +231,16 @@ class MainWindow(QtWidgets.QMainWindow):
         th2.rbvUpdate.connect(self.updateRBVs)
         th2.start()
         # robot active thread
-        th3 = robotCheckThread()
-        th3.robotUpdate.connect(self.setRobotActiveStatus)
-        th3.start()
+        # th3 = robotCheckThread()
+        # th3.robotUpdate.connect(self.setRobotActiveStatus)
+        # th3.start()
         # th4 = beamlineSafeThread()
         # th4.beamlineSafe.connect(self.beamlineSafeStatus)
         # th4.start()
         # gonio rotation buttons
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
         self.ui.buttonFastOmegaTurn.clicked.connect(
-            lambda: ca.caput(pv.omega_velo, 60)
+            lambda: ca.caput(pv.omega_velo, 40)
         )
         self.ui.plusMinus3600.clicked.connect(self.goTopm3600)
         self.ui.minus180.clicked.connect(lambda: self.gonioRotate(-180))
@@ -330,7 +330,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 (float(ca.caget(pv.gonio_z_rbv)))
                 - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
             )
-        elif direction == "in":
+        elif direction == "out":
             ca.caput(
                 pv.gonio_y,
                 (float(ca.caget(pv.gonio_y_rbv)))
@@ -341,7 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 (float(ca.caget(pv.gonio_z_rbv)))
                 - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
             )
-        elif direction == "out":
+        elif direction == "in":
             ca.caput(
                 pv.gonio_y,
                 (float(ca.caget(pv.gonio_y_rbv)))
@@ -473,29 +473,28 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.robot_ip16_force_option, "On")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
         else:
-            pass
             #ca.caput(pv.robot_ip16_force_option, "No")
-            #self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
+            self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
         if ca.caget(pv.robot_pin_mounted) == "Yes":
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
         else:
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: red")
 
-    def setRobotActiveStatus(self, robotUpdateList):
-        if str(robotUpdateList[0]) == "No":
-            self.ui.indicatorRobotActive.setStyleSheet("background-color: red")
-        else:
-            self.ui.indicatorRobotActive.setStyleSheet("background-color: green")
+    # def setRobotActiveStatus(self, robotUpdateList):
+    #     if str(robotUpdateList[0]) == "No":
+    #         self.ui.indicatorRobotActive.setStyleSheet("background-color: red")
+    #     else:
+    #         self.ui.indicatorRobotActive.setStyleSheet("background-color: green")
 
-    def beamlineSafeStatus(self, beamlineSafeList):
-        if str(beamlineSafeList[0]) == "Yes":
-            ca.caput(pv.robot_ip16_force_option, "On")
-            self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
-        elif str(beamlineSafeList[0]) == "No":
-            ca.caput(pv.robot_ip16_force_option, "No")
-            self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
-        else:
-            pass
+    # def beamlineSafeStatus(self, beamlineSafeList):
+    #     if str(beamlineSafeList[0]) == "Yes":
+    #         ca.caput(pv.robot_ip16_force_option, "On")
+    #         self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
+    #     elif str(beamlineSafeList[0]) == "No":
+    #         ca.caput(pv.robot_ip16_force_option, "No")
+    #         self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
+    #     else:
+    #         pass
 
     def autoCenter(self):
         cap = cv.VideoCapture(
