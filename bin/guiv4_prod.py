@@ -1,6 +1,6 @@
-#!/dls/science/groups/i23/pyenvs/aithreconda/bin/python
+#!source .venv/bin/python
 
-# C Orr 2022
+# C Orr 2025
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
