@@ -1,0 +1,7 @@
+numpy==2.2.1
+opencv-python-headless==4.10.0.84
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.16
+PyQt5_sip==12.16.1
+pyzmq==26.2.0
+zmq==0.0.0
