@@ -10,13 +10,13 @@ import sys
 import numpy as np
 import time
 import os
-from guiv4_2_5 import Ui_MainWindow
+from guiv4_2_6 import Ui_MainWindow
 from datetime import datetime
 import zmq
 import pickle
 
 
-version = "4.2.5"
+version = "4.2.6"
 # Set grid/beam position/scale.
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
