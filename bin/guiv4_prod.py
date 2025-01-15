@@ -331,27 +331,29 @@ class MainWindow(QtWidgets.QMainWindow):
                 - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
             )
         elif direction == "out":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
+            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+            # ca.caput(
+            #     pv.gonio_y,
+            #     (float(ca.caget(pv.gonio_y_rbv)))
+            #     - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )
+            # ca.caput(
+            #     pv.gonio_z,
+            #     (float(ca.caget(pv.gonio_z_rbv)))
+            #     - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )
         elif direction == "in":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
+            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
+            # ca.caput(
+            #     pv.gonio_y,
+            #     (float(ca.caget(pv.gonio_y_rbv)))
+            #     + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )
+            # ca.caput(
+            #     pv.gonio_z,
+            #     (float(ca.caget(pv.gonio_z_rbv)))
+            #     + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )
         else:
             pass
 
