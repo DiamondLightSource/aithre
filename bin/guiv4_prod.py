@@ -14,6 +14,7 @@ from guiv4_2_6 import Ui_MainWindow
 from datetime import datetime
 import zmq
 import pickle
+import laserControl as lc
 
 
 version = "4.2.6"
@@ -257,8 +258,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.down.clicked.connect(lambda: self.jogSample("down"))
         self.ui.left.clicked.connect(lambda: self.jogSample("left"))
         self.ui.right.clicked.connect(lambda: self.jogSample("right"))
-        self.ui.pushButtonSampleIn.clicked.connect(lambda: self.jogSample("in"))
-        self.ui.pushButtonSampleOut.clicked.connect(lambda: self.jogSample("out"))
+        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
+        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
         # exposure and gain sliders
         self.ui.sliderExposure.valueChanged.connect(self.changeExposureGain)
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
@@ -269,6 +270,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.unload.clicked.connect(self.unloadPin)
         self.ui.dry.clicked.connect(self.dryGripper)
         zoom_level = self.ui.sliderZoom.value()
+
 
     def loadNextPin(self):
         ca.caput(pv.robot_reset, 1)
@@ -330,7 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 (float(ca.caget(pv.gonio_z_rbv)))
                 - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
             )
-        elif direction == "out":
+        elif direction == "ZPlus":
             ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
             # ca.caput(
             #     pv.gonio_y,
@@ -342,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #     (float(ca.caget(pv.gonio_z_rbv)))
             #     - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
             # )
-        elif direction == "in":
+        elif direction == "ZMinus":
             ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
             # ca.caput(
             #     pv.gonio_y,
