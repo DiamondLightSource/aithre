@@ -1,4 +1,3 @@
-from importlib.metadata import requires
 import requests
 import json
 import time
