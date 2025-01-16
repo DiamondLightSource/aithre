@@ -1,4 +1,4 @@
-#!source .venv/bin/python
+#!.venv/bin/python
 
 # C Orr 2025
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -10,14 +10,14 @@ import sys
 import numpy as np
 import time
 import os
-from guiv4_2_6 import Ui_MainWindow
+from guiv4_2_5 import Ui_MainWindow
 from datetime import datetime
-import zmq
-import pickle
-import laserControl as lc
+#import zmq
+#import pickle
+#import laserControlAsync as lca
 
 
-version = "4.2.6"
+version = "4.2.5"
 # Set grid/beam position/scale.
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
@@ -500,48 +500,48 @@ class MainWindow(QtWidgets.QMainWindow):
     #     else:
     #         pass
 
-    def autoCenter(self):
-        cap = cv.VideoCapture(
-            "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
-        )
-        ret, frame = cap.read()
-        if ret:
-            filename = os.path.join(
-                os.path.dirname(os.getcwd()),
-                "captures",
-                "autoCenter",
-                f"{datetime.now().strftime('%d%m%y_%H%M%S')}.jpg",
-            )
-            try:
-                cv.imwrite(filename, frame)
-            except:
-                print("Could not write image file")
-        # check if murko running
-        # send image to murko and get info
-        try:
-            request_arguments = {}
-            request_arguments["to_predict"] = str(filename)
-            #request_arguments["model_img_size"] = (display_height, display_width)
-            request_arguments["save"] = True
-            request_arguments["min_size"] = 64
-            request_arguments["description"] = [
-                "foreground",
-                "crystal",
-                "loop_inside",
-                "loop",
-                ["crystal", "loop"],
-                ["crystal", "loop", "stem"],
-            ]
-            context = zmq.context()
-            socket = context.socket(zmq.REQ)
-            #socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
-            socket.connect("tcp://localhost")
-            socket.send(pickle.dumps(request_arguments))
-            raw_predictions = socket.recv()
-            predictions = pickle.load(raw_predictions)
-            print("Prediction successfull")
-        except:
-            print("Could not predict")
+    # def autoCenter(self):
+    #     cap = cv.VideoCapture(
+    #         "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
+    #     )
+    #     ret, frame = cap.read()
+    #     if ret:
+    #         filename = os.path.join(
+    #             os.path.dirname(os.getcwd()),
+    #             "captures",
+    #             "autoCenter",
+    #             f"{datetime.now().strftime('%d%m%y_%H%M%S')}.jpg",
+    #         )
+    #         try:
+    #             cv.imwrite(filename, frame)
+    #         except:
+    #             print("Could not write image file")
+    #     # check if murko running
+    #     # send image to murko and get info
+    #     try:
+    #         request_arguments = {}
+    #         request_arguments["to_predict"] = str(filename)
+    #         #request_arguments["model_img_size"] = (display_height, display_width)
+    #         request_arguments["save"] = True
+    #         request_arguments["min_size"] = 64
+    #         request_arguments["description"] = [
+    #             "foreground",
+    #             "crystal",
+    #             "loop_inside",
+    #             "loop",
+    #             ["crystal", "loop"],
+    #             ["crystal", "loop", "stem"],
+    #         ]
+    #         context = zmq.context()
+    #         socket = context.socket(zmq.REQ)
+    #         #socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
+    #         socket.connect("tcp://localhost")
+    #         socket.send(pickle.dumps(request_arguments))
+    #         raw_predictions = socket.recv()
+    #         predictions = pickle.load(raw_predictions)
+    #         print("Prediction successfull")
+    #     except:
+    #         print("Could not predict")
 
         # move stage to center
         # rotate 90 and repeat

@@ -307,7 +307,7 @@ class carbide():
                 else:
                     print("Cannot get requested attenuator percentage")
             elif response_set.status_code == 403:
-                print(f"Cannot set to this value, likely out of bounds")
+                print("Cannot set to this value, likely out of bounds")
             else:
                 print("Error setting target attenuator percentage")
 
@@ -343,7 +343,7 @@ class carbide():
                 else:
                     print("Cannot get requested pulse duration")
             elif response_set.status_code == 403:
-                print(f"Cannot set to this value, likely out of bounds")
+                print("Cannot set to this value, likely out of bounds")
             else:
                 print("Error setting pulse duration")
                 
