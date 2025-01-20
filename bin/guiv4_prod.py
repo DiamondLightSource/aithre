@@ -276,9 +276,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.dry.clicked.connect(self.dryGripper)
         zoom_level = self.ui.sliderZoom.value()
 
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(lambda: asyncio.create_task(self.checkLaserOutputStatus()))
-        self.timer.start(5000)
+        # self.timer = QtCore.QTimer(self)
+        # self.timer.timeout.connect(lambda: asyncio.create_task(self.checkLaserOutputStatus()))
+        # self.timer.start(5000)
 
     # async def checkLaserOutputStatus(self):
     #     await self.laserControl.isOutputEnabled()
