@@ -32,6 +32,12 @@ class carbide():
         self.pulsepickerstatus = None
         self.currentaomtriggersource = None
         self.powerlockstatus = None
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.serialNumber())
+        loop.create_task(self.isOutputEnabled())
+        loop.create_task(self.generalStatus())
+        loop.create_task(self.actualValues())
+        print("Laser control initialised")
 
     async def generalStatus(self):
         """Fetch general status asynchronously"""
@@ -134,13 +140,9 @@ class carbide():
             response = await client.get(f"{self.carbideEndPoint}/v1/Basic/IsOutputEnabled")
 
         if response.status_code == 200:
-            self.isoutputenabled = response.text.strip()  # Store the value as a string
-            if self.isoutputenabled == "true":
-                print("Output is open")
-            elif self.isoutputenabled == "false":
-                print("Output is closed")
+            self.isoutputenabled = response.text.strip()
         else:
-            print("Not sure about output status")
+            self.isoutputenabled = "unknown"
 
     async def getLastExecutedPresetIndex(self):
         """Fetch the last executed preset index asynchronously using httpx"""

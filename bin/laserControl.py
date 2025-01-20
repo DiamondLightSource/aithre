@@ -548,10 +548,10 @@ class carbide:
 
 
 if __name__ == "__main__":
-    run = carbide(endpoint="http://192.168.240.10:20010")
+    run = carbide(endpoint="http://172.23.17.123:20010")
     run.isOutputEnabled()
     run.actualValues()
-    run.selectAndApplyPreset("5")
+    # run.selectAndApplyPreset("5")
     run.actualValues()
     run.changeOutput("enable")
     time.sleep(5)
