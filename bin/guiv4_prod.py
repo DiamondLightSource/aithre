@@ -223,19 +223,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # OAV connections thread
         self.zoomLevel = 1
         self.setupOAV()
-        self.th = OAVThread()
-        self.th.ImageUpdate.connect(self.setImage)
-        self.th.start()
-        self.zoomChanged.connect(self.th.setZoomLevel)
+        self.OAVth = OAVThread()
+        self.OAVth.ImageUpdate.connect(self.setImage)
+        self.OAVth.start()
+        self.zoomChanged.connect(self.OAVth.setZoomLevel)
         self.ui.oav_stream.mousePressEvent = self.onMouse
         self.ui.start.clicked.connect(self.oavStart)
         self.ui.stop.clicked.connect(self.oavStop)
         self.ui.snapshot.clicked.connect(self.saveSnapshot)
         self.ui.AutoCenter.clicked.connect(self.autoCenter)
         # RBV updating connections thread
-        th2 = RBVThread()
-        th2.rbvUpdate.connect(self.updateRBVs)
-        th2.start()
+        RBVth = RBVThread()
+        RBVth.rbvUpdate.connect(self.updateRBVs)
+        RBVth.start()
         # robot active thread
         # th3 = robotCheckThread()
         # th3.robotUpdate.connect(self.setRobotActiveStatus)
