@@ -10,16 +10,19 @@ import sys
 import numpy as np
 import time
 import os
-from guiv4_2_6 import Ui_MainWindow
+from guiv4_2_6beta import Ui_MainWindow
 from datetime import datetime
 import zmq
 import pickle
-from laserControlAsync import carbide as lcaC
 import asyncio
+import laserControl as lc
+import httpx
 from qasync import QEventLoop
 
 
 version = "4.2.6"
+OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
+LASERENDPOINT = "http://172.23.17.123:20010"
 # Set grid/beam position/scale.
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
@@ -27,8 +30,8 @@ line_color = (140, 140, 140)  # greyness
 beamX = 2210
 beamY = 1186
 feed_width = int(ca.caget(pv.oav_max_x))
-display_width = 2012
-display_height = 1518
+display_width = 2012  # 2012
+display_height = 1528  # 1518
 camera_pixel_size = 1.85  # Alvium1240M
 feed_display_ratio = feed_width / display_width
 calibrate = (
@@ -56,9 +59,7 @@ class OAVThread(QtCore.QThread):
 
     def run(self):
         self.ThreadActive = True
-        self.cap = cv.VideoCapture(
-            "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
-        )
+        self.cap = cv.VideoCapture(OAVADDRESS)
         while self.ThreadActive:
             ret, frame = self.cap.read()
             if self.ThreadActive and ret:
@@ -164,7 +165,57 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
-            #print(f"lRBVThreadComplete {str(datetime.now())}")
+            # print(f"lRBVThreadComplete {str(datetime.now())}")
+
+
+class LaserStatusThread(QtCore.QThread):
+    statusUpdate = QtCore.pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+        self.endpoint = LASERENDPOINT
+        self.interval = 500
+        self._is_running = True
+        self.endpoints = {
+            "IsOutputEnabled": f"{self.endpoint}/v1/Basic/IsOutputEnabled",
+            "ActualShutterState": f"{self.endpoint}/v1/Basic/ActualShutterState",
+            "ActualOutputFrequency": f"{self.endpoint}/v1/Basic/ActualOutputFrequency",
+            "ActualAttenuatorPercentage": f"{self.endpoint}/v1/Basic/ActualAttenuatorPercentage",
+            "ActualPpDivider": f"{self.endpoint}/v1/Basic/ActualPpDivider",
+            "ActualStateName": f"{self.endpoint}/v1/Basic/ActualStateName",
+        }
+
+    async def fetchStatus(self):
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            tasks = []
+            for name, url in self.endpoints.items():
+                tasks.append(self.fetchEndpoint(client, name, url))
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            return dict(results)
+
+    async def fetchEndpoint(self, client, name, url):
+        try:
+            response = await client.get(url)
+            if response.status_code == 200:
+                return (name, response.text.strip())
+            return (name, f"Error: {response.status_code}")
+        except Exception as e:
+            return (name, f"Error: {str(e)}")
+
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        while self._is_running:
+            try:
+                status_dict = loop.run_until_complete(self.fetchStatus())
+                self.statusUpdate.emit(status_dict)
+            except Exception as e:
+                print(f"Error fetching status: {str(e)}")
+            QtCore.QThread.msleep(self.interval)
+
+    def stop(self):
+        self._is_running = False
 
 
 # class robotCheckThread(QtCore.QThread):
@@ -206,8 +257,6 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.laserControl = lcaC(endpoint="http://172.23.17.123:20010")  # Initialize carbide instance
-
 
         # menus
         self.ui.actionExit.triggered.connect(self.quit)
@@ -245,9 +294,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # th4.start()
         # gonio rotation buttons
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
-        self.ui.buttonFastOmegaTurn.clicked.connect(
-            lambda: ca.caput(pv.omega_velo, 40)
-        )
+        self.ui.buttonFastOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 40))
         self.ui.plusMinus3600.clicked.connect(self.goTopm3600)
         self.ui.minus180.clicked.connect(lambda: self.gonioRotate(-180))
         self.ui.plus180.clicked.connect(lambda: self.gonioRotate(180))
@@ -274,22 +321,61 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.load.clicked.connect(self.loadNextPin)
         self.ui.unload.clicked.connect(self.unloadPin)
         self.ui.dry.clicked.connect(self.dryGripper)
-        zoom_level = self.ui.sliderZoom.value()
+        # zoom_level = self.ui.sliderZoom.value()
+        # laser buttons
+        self.ui.pushButtonDisableLaser.clicked.connect(lambda: self.commandLaser("Disable"))
+        self.ui.pushButtonEnableLaser.clicked.connect(lambda: self.commandLaser("Enable"))
+        self.ui.pushButtonSetDivider.clicked.connect(lambda: self.commandLaser("SetDivider"))
+        self.ui.pushButtonSetAttenuator.clicked.connect(lambda: self.commandLaser("SetAttenuator"))
+        self.ui.pushButtonStartupLaser.clicked.connect(lambda: self.commandLaser("Startup"))
+        self.ui.pushButtonStandbyLaser.clicked.connect(lambda: self.commandLaser("Standby"))
 
-        # self.timer = QtCore.QTimer(self)
-        # self.timer.timeout.connect(lambda: asyncio.create_task(self.checkLaserOutputStatus()))
-        # self.timer.start(5000)
+        self.laserStatusThread = LaserStatusThread()
+        self.laserStatusThread.statusUpdate.connect(self.updateLaserStatus)
+        self.laserStatusThread.start()
 
-    # async def checkLaserOutputStatus(self):
-    #     await self.laserControl.isOutputEnabled()
-    #     if self.laserControl.isoutputenabled == "true":
-    #         self.ui.labOUTPUT.setStyleSheet("background-color: green")
-    #     elif self.laserControl.isoutputenabled == "unknown":
-    #         self.ui.labOUTPUT.setStyleSheet("background-color: yellow")
-    #     elif self.laserControl.isoutputenabled == "false":
-    #         self.ui.labOUTPUT.setStyleSheet("background-color: red")
-    #     else:
-    #         self.ui.labOUTPUT.setStyleSheet("background-color: yellow")
+    def updateLaserStatus(self, status_dict):
+        if status_dict["IsOutputEnabled"] == "true":
+            self.ui.labOUTPUT.setStyleSheet("background-color: green")
+        else:
+            self.ui.labOUTPUT.setStyleSheet("background-color: red")
+
+        if status_dict["ActualShutterState"] == '"Opened"':
+            self.ui.labEMISSION.setStyleSheet("background-color: green")
+        elif status_dict["ActualShutterState"] == '"Closed"':
+            self.ui.labEMISSION.setStyleSheet("background-color: red")
+        else:
+            self.ui.labEMISSION.setStyleSheet("background-color: yellow")
+
+        self.outputDivider = status_dict["ActualPpDivider"]
+        self.outputFrequency = status_dict["ActualOutputFrequency"]
+        self.DivFreq = f"{(self.outputDivider)} / {str(np.round(float(self.outputFrequency), 2))} Hz"
+        self.ui.labDividerRBV.setText(self.DivFreq)
+        self.outputAttenuator = status_dict["ActualAttenuatorPercentage"]
+        self.ui.labAttenuatorRBV.setText(str(np.round(float(self.outputAttenuator), 1)))
+        self.ui.labLaserStatus.setText(status_dict["ActualStateName"])
+
+    def closeEvent(self, event):
+        self.laserStatusThread.stop()
+        self.laserStatusThread.quit()
+        self.laserStatusThread.wait()
+        event.accept()
+
+    def commandLaser(self, command):
+        laser = lc.carbide(endpoint=LASERENDPOINT)
+        if command == "Enable":
+            laser.changeOutput(state="enable")
+        elif command == "Disable":
+            laser.changeOutput(state="close")
+        elif command == "SetDivider":
+            laser.setPpDivider(divider=int(self.ui.spinBoxDivider.value()))
+        elif command == "SetAttenuator":
+            laser.setAttenuatorPercentage(percentage=float(self.ui.doubleSpinBoxAttenuator.value()))
+        elif command == "Startup":
+            laser.selectAndApplyPreset(preset="5")
+        elif command == "Standby":
+            laser.goToStandby()
+
 
     def loadNextPin(self):
         ca.caput(pv.robot_reset, 1)
@@ -353,28 +439,8 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         elif direction == "ZPlus":
             ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
-            # ca.caput(
-            #     pv.gonio_y,
-            #     (float(ca.caget(pv.gonio_y_rbv)))
-            #     - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )
-            # ca.caput(
-            #     pv.gonio_z,
-            #     (float(ca.caget(pv.gonio_z_rbv)))
-            #     - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )
         elif direction == "ZMinus":
             ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
-            # ca.caput(
-            #     pv.gonio_y,
-            #     (float(ca.caget(pv.gonio_y_rbv)))
-            #     + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )
-            # ca.caput(
-            #     pv.gonio_z,
-            #     (float(ca.caget(pv.gonio_z_rbv)))
-            #     + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )
         else:
             pass
 
@@ -496,7 +562,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.robot_ip16_force_option, "On")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
         else:
-            #ca.caput(pv.robot_ip16_force_option, "No")
+            # ca.caput(pv.robot_ip16_force_option, "No")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
         if ca.caget(pv.robot_pin_mounted) == "Yes":
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
@@ -508,8 +574,16 @@ class MainWindow(QtWidgets.QMainWindow):
     #         self.ui.indicatorRobotActive.setStyleSheet("background-color: red")
     #     else:
     #         self.ui.indicatorRobotActive.setStyleSheet("background-color: green")
-
-    # def beamlineSafeStatus(self, beamlineSafeList):
+            # ca.caput(
+            #     pv.gonio_y,
+            #     (float(ca.caget(pv.gonio_y_rbv)))
+            #     - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )
+            # ca.caput(
+            #     pv.gonio_z,
+            #     (float(ca.caget(pv.gonio_z_rbv)))
+            #     - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
+            # )lf, beamlineSafeList):
     #     if str(beamlineSafeList[0]) == "Yes":
     #         ca.caput(pv.robot_ip16_force_option, "On")
     #         self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
@@ -540,7 +614,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             request_arguments = {}
             request_arguments["to_predict"] = str(filename)
-            #request_arguments["model_img_size"] = (display_height, display_width)
+            # request_arguments["model_img_size"] = (display_height, display_width)
             request_arguments["save"] = True
             request_arguments["min_size"] = 64
             request_arguments["description"] = [
@@ -553,7 +627,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ]
             context = zmq.context()
             socket = context.socket(zmq.REQ)
-            #socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
+            # socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
             socket.connect("tcp://localhost")
             socket.send(pickle.dumps(request_arguments))
             raw_predictions = socket.recv()
@@ -562,6 +636,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except:
             print("Could not predict")
 
+        
         # move stage to center
         # rotate 90 and repeat
 

@@ -15,7 +15,6 @@ class carbide:
         self.carbideEndPoint = endpoint
         self.laserIdentificationNumber()
         self.serialNumber()
-        self.currentaomtriggersource = 0
         self.requestHeaders = {"Content-Type": "application/json"}
 
     def laserIdentificationNumber(self):
@@ -66,14 +65,6 @@ class carbide:
         Args:
             preset (str, optional): Preset to use as set in GUI. Defaults to "1".
         """
-        self.currentpreset = requests.get(
-            f"{self.carbideEndPoint}/v1/Basic/SelectedPresetIndex"
-        )
-        if self.currentpreset.status_code == 200:
-            print(f"Current preset is {self.currentpreset.text}")
-        else:
-            print("No idea what current preset is")
-        print(f"Requesting preset {preset}")
         presetNumber = int(preset)
         self.selectpreset = requests.put(
             f"{self.carbideEndPoint}/v1/Basic/SelectedPresetIndex",
@@ -81,21 +72,12 @@ class carbide:
             headers=self.requestHeaders,
         )
         if self.selectpreset.status_code == 200:
-            print(f"Preset {preset} has been set, applying...")
             self.applypreset = requests.post(
                 f"{self.carbideEndPoint}/v1/Basic/ApplySelectedPreset",
                 headers=self.requestHeaders,
             )
-            time.sleep(2)
             if self.applypreset.status_code == 200:
-                self.waitForLaserOperational()
-                print("Successfully applied!")
-            elif self.applypreset.status_code == 403:
-                print("Could not apply preset")
-            else:
-                print("Error applying preset")
-        elif self.selectpreset.status_code == 403:
-            print("Preset doesn't exist. Check available presets")
+                print(f"Preset {preset} loading...")
         else:
             print("Error setting preset")
 
@@ -153,15 +135,13 @@ class carbide:
         self.gotostandby = requests.post(
             f"{self.carbideEndPoint}/v1/Basic/GoToStandby", headers=self.requestHeaders
         )
+        self.actualStateName()
         if self.gotostandby.status_code == 200:
-            self.actualStateName()
-            while self.actualstatename != '"StandingBy"':
-                time.sleep(1)
-                self.actualStateName()
-            if self.actualstatename == '"StandingBy"':
-                print("Laser in standby")
-            else:
-                print("Laser not in standby, please check state manually")
+            print("Going to standby")
+        elif self.actualstatename == '"StandingBy"':
+            print("Laser already in standby")
+        else:
+            print("Laser not in standby, please check state manually")
 
     def actualValues(self):
         """_summary_"""
@@ -226,6 +206,25 @@ class carbide:
                 print("Harmonic is likely 0 as not running")
         else:
             print("Unable to find harmonic")
+
+    def setAttenuatorPercentage(self, percentage="10"):
+        """_summary_
+
+        Args:
+            percentage (str, optional): percentage to set. Defaults to "10".
+        """
+        self.setattenuatorpercentage = requests.put(
+            f"{self.carbideEndPoint}/v1/Basic/TargetAttenuatorPercentage",
+            data=json.dumps(percentage),
+            headers=self.requestHeaders,
+        )
+        if self.setattenuatorpercentage.status_code == 200:
+            print(f"Attenuator percentage set to {percentage}%")
+        elif self.setattenuatorpercentage.status_code == 403:
+            print("Cannot set to this value, likely out of bounds")
+        else:
+            print("Error setting attenuator percentage")
+
 
     def targetAttenuatorPercentage(self, percentage="0"):
         """_summary_
@@ -292,6 +291,24 @@ class carbide:
             print(f"Cannot set to this value, likely out of bounds")
         else:
             print("Error setting pulse duration")
+
+    def setPpDivider(self, divider="1000"):
+        """_summary_
+
+        Args:
+            divider (str, optional): _description_. Defaults to "1000".
+        """
+        self.setppdivider = requests.put(
+            f"{self.carbideEndPoint}/v1/Basic/TargetPpDivider",
+            data=json.dumps(divider),
+            headers=self.requestHeaders,
+        )
+        if self.setppdivider.status_code == 200:
+            print(f"Pulse picker divider set to {divider}")
+        elif self.setppdivider.status_code == 403:
+            print("Cannot set to this value, likely out of bounds")
+        else:
+            print("Error setting pulse picker divider")
 
     def targetPpDivider(self, divider="1000"):
         """_summary_
