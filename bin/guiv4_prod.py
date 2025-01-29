@@ -18,6 +18,7 @@ import asyncio
 import laserControl as lc
 import httpx
 from qasync import QEventLoop
+import datetime
 
 
 version = "4.2.6"
@@ -257,6 +258,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.drawn_points = []
 
         # menus
         self.ui.actionExit.triggered.connect(self.quit)
@@ -276,6 +278,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.OAVth.ImageUpdate.connect(self.setImage)
         self.OAVth.start()
         self.zoomChanged.connect(self.OAVth.setZoomLevel)
+        self.canvasMode = "move"
         self.ui.oav_stream.mousePressEvent = self.onMouse
         self.ui.start.clicked.connect(self.oavStart)
         self.ui.stop.clicked.connect(self.oavStop)
@@ -329,6 +332,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButtonSetAttenuator.clicked.connect(lambda: self.commandLaser("SetAttenuator"))
         self.ui.pushButtonStartupLaser.clicked.connect(lambda: self.commandLaser("Startup"))
         self.ui.pushButtonStandbyLaser.clicked.connect(lambda: self.commandLaser("Standby"))
+        # move/draw options
+        self.ui.radioButtonMoveMode.toggled.connect(lambda: self.toggleCanvasMode("move"))
+        self.ui.radioButtonDrawMode.toggled.connect(lambda: self.toggleCanvasMode("draw"))
+        self.ui.pushButtonClear.clicked.connect(lambda: self.drawn_points.clear())
+        self.ui.pushButtonCut.clicked.connect(self.savePoints)
 
         self.laserStatusThread = LaserStatusThread()
         self.laserStatusThread.statusUpdate.connect(self.updateLaserStatus)
@@ -411,9 +419,9 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
 
     def jogSample(self, direction):
-        if direction == "left":
+        if direction == "right":
             ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
-        elif direction == "right":
+        elif direction == "left":
             ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
         elif direction == "up":
             ca.caput(
@@ -453,27 +461,57 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Moving gonio omega to", str(gonio_request))
         ca.caput(pv.omega, gonio_request)
 
-    # moving sample to beam centre when clicked
-    def onMouse(self, event):
-        x = event.pos().x()
-        x = x * feed_display_ratio
-        y = event.pos().y()
-        y = y * feed_display_ratio
-        x_curr = float(ca.caget(pv.stage_x_rbv))
-        print(x_curr)
-        y_curr = float(ca.caget(pv.gonio_y_rbv))
-        z_curr = float(ca.caget(pv.gonio_z_rbv))
-        omega = float(ca.caget(pv.omega_rbv))
-        print("Clicked", x, y)
-        Xmove = x_curr - ((x - beamX) * calibrate)
-        print((x - beamX))
-        Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - beamY) * calibrate))
-        Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - beamY) * calibrate))
-        print("Moving", Xmove, Ymove, Zmove)
-        ca.caput(pv.stage_x, Xmove)
-        ca.caput(pv.gonio_y, Ymove)
-        ca.caput(pv.gonio_z, Zmove)
+    def toggleCanvasMode(self, mode):
+        if mode == "move":
+            self.canvasMode = "move"
+        elif mode == "draw":
+            self.canvasMode = "draw"
+        else:
+            self.canvasMode = "move"
 
+    def onMouse(self, event):
+        if self.canvasMode == "move":
+            x = event.pos().x()
+            x = x * feed_display_ratio
+            y = event.pos().y()
+            y = y * feed_display_ratio
+            x_curr = float(ca.caget(pv.stage_x_rbv))
+            #print(x_curr)
+            y_curr = float(ca.caget(pv.gonio_y_rbv))
+            z_curr = float(ca.caget(pv.gonio_z_rbv))
+            omega = float(ca.caget(pv.omega_rbv))
+            #print("Clicked", x, y)
+            Xmove = x_curr - ((x - beamX) * calibrate)
+            #print((x - beamX))
+            Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - beamY) * calibrate))
+            Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - beamY) * calibrate))
+            print("Moving", Xmove, Ymove, Zmove)
+            ca.caput(pv.stage_x, Xmove)
+            ca.caput(pv.gonio_y, Ymove)
+            ca.caput(pv.gonio_z, Zmove)
+        elif self.canvasMode == "draw":
+            self.drawn_points.append(event.pos())
+            self.redrawPoints()
+        else:
+            pass
+        
+    def redrawPoints(self):
+        if self.image is not None:
+            painter = QtGui.QPainter(self.image)
+            painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0), 5))
+            for point in self.drawn_points:
+                painter.drawPoint(point)
+            painter.end()
+            self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(self.image))
+
+    def savePoints(self):
+        now = datetime.datetime.now()
+        filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
+        
+        with open(filename, 'w') as file:
+            for point in self.drawn_points:
+                file.write(f"{point.x()}, {point.y()}\n")
+                    
     def setupOAV(self):
         for callback in (
             pv.oav_roi_ecb,
@@ -498,6 +536,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setImage(self, image):
         self.image = image
+        self.redrawPoints()
         self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(image))
 
     def saveSnapshot(self):
