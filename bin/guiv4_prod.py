@@ -1,12 +1,11 @@
 #!.venv/bin/python
-
+import sys
 # C Orr 2025
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
 import pv
 import math
-import sys
 import numpy as np
 import time
 import os
@@ -18,7 +17,6 @@ import asyncio
 import laserControl as lc
 import httpx
 from qasync import QEventLoop
-import datetime
 
 
 version = "4.2.6"
@@ -499,18 +497,26 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.image is not None:
             painter = QtGui.QPainter(self.image)
             painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0), 5))
-            for point in self.drawn_points:
-                painter.drawPoint(point)
+            if len(self.drawn_points) < 2:
+                for point in self.drawn_points:
+                    painter.drawPoint(point)
+            if len(self.drawn_points) > 1:
+                for i in range(len(self.drawn_points) - 1):
+                    painter.drawLine(self.drawn_points[i], self.drawn_points[i + 1])
             painter.end()
             self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(self.image))
 
     def savePoints(self):
-        now = datetime.datetime.now()
+        now = datetime.now()
         filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
+
         
+
         with open(filename, 'w') as file:
             for point in self.drawn_points:
-                file.write(f"{point.x()}, {point.y()}\n")
+                correctedX = point.x() * calibrate
+                correctedY = point.y() * calibrate
+                file.write(f"{correctedX}, {correctedY}\n")
                     
     def setupOAV(self):
         for callback in (
