@@ -1,11 +1,11 @@
 [project]
 name = "aithre"
 version = "0.1.0"
-description = "Add your description here"
+description = "GUI for the I23 laser shaping system at Diamond Light Source"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["pyqt5",
-		"opencv-python",
+		"opencv-python-headless",
 		"numpy",
 		"requests",
 		"zmq",
@@ -13,6 +13,10 @@ dependencies = ["pyqt5",
 		"httpx",
 		"qasync",
 		"ruff",
+		"bluesky",
+		"ophyd",
+		"ophyd-async",
+		"dodal",
 ]
 [tool.setuptools]
 py-modules = []
