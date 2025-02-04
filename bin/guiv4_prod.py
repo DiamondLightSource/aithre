@@ -1,6 +1,5 @@
 #!.venv/bin/python
 import sys
-# C Orr 2025
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
@@ -102,11 +101,9 @@ class OAVThread(QtCore.QThread):
 
                     frame = cv.resize(cropped_frame, (frame.shape[1], frame.shape[0]))
 
-                # cv.ellipse(frame, (beamX, beamY), (12, 8), 0.0, 0.0, 360, (0,0,255), thickness=2) # could use to draw cut...
-                # cv.putText(frame,'text',bottomLeftCornerOfText, font, fontScale, fontColor, thickness, lineType)
                 rgbImage = cv.cvtColor(
                     frame, cv.COLOR_BGR2RGB
-                )  # color because of crosshair, drawings etc
+                )  
                 convertToQtFormat = QtGui.QImage(
                     rgbImage.data,
                     rgbImage.shape[1],
@@ -116,7 +113,7 @@ class OAVThread(QtCore.QThread):
                 p = convertToQtFormat
                 p = convertToQtFormat.scaled(
                     display_width, display_height, QtCore.Qt.KeepAspectRatio
-                )  # numbers are a fraction of full res as full res is too big to fit on screen
+                ) 
                 self.ImageUpdate.emit(p)
 
     def adjust_roi_boundaries(self, start, end, max_value, window_size):
