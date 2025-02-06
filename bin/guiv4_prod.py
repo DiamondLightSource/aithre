@@ -471,7 +471,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.robot_ip16_force_option, "On")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
         else:
-            #ca.caput(pv.robot_ip16_force_option, "No")
+            # ca.caput(pv.robot_ip16_force_option, "No")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
         if ca.caget(pv.robot_pin_mounted) == "Yes":
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
@@ -528,7 +528,7 @@ class MainWindow(QtWidgets.QMainWindow):
             ]
             context = zmq.context()
             socket = context.socket(zmq.REQ)
-            #socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
+            # socket.connect("http://bl23i-ea-serv-01.diamond.ac.uk:89011")
             socket.connect("tcp://localhost")
             socket.send(pickle.dumps(request_arguments))
             raw_predictions = socket.recv()
