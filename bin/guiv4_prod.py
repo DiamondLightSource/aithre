@@ -161,7 +161,7 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
-            #print(f"lRBVThreadComplete {str(datetime.now())}")
+            # print(f"lRBVThreadComplete {str(datetime.now())}")
 
 
 # class robotCheckThread(QtCore.QThread):
@@ -239,9 +239,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # th4.start()
         # gonio rotation buttons
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
-        self.ui.buttonFastOmegaTurn.clicked.connect(
-            lambda: ca.caput(pv.omega_velo, 40)
-        )
+        self.ui.buttonFastOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 40))
         self.ui.plusMinus3600.clicked.connect(self.goTopm3600)
         self.ui.minus180.clicked.connect(lambda: self.gonioRotate(-180))
         self.ui.plus180.clicked.connect(lambda: self.gonioRotate(180))
