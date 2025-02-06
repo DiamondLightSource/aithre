@@ -515,7 +515,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             request_arguments = {}
             request_arguments["to_predict"] = str(filename)
-            #request_arguments["model_img_size"] = (display_height, display_width)
+            # request_arguments["model_img_size"] = (display_height, display_width)
             request_arguments["save"] = True
             request_arguments["min_size"] = 64
             request_arguments["description"] = [
