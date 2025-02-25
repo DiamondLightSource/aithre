@@ -194,7 +194,7 @@ class carbide:
         if self.actualstateid.status_code == 200:
             print(f"State ID no.: {self.actualstateid.text}")
         self.actualharmonic = requests.get(
-                f"{self.carbideEndPoint}/v1/Basic/ActualHarmonic"
+            f"{self.carbideEndPoint}/v1/Basic/ActualHarmonic"
         )
         if self.actualharmonic.status_code == 200:
             try:
@@ -224,7 +224,6 @@ class carbide:
             print("Cannot set to this value, likely out of bounds")
         else:
             print("Error setting attenuator percentage")
-
 
     def targetAttenuatorPercentage(self, percentage="0"):
         """_summary_

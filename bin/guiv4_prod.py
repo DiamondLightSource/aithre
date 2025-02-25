@@ -2,6 +2,9 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
+# import rtc6_fastcs
+# import rtc6_fastcs.cut_shapes
+# import rtc6_fastcs.plan_stubs
 from control import ca
 import pv
 import math
@@ -254,6 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
+        #self.rtc6 = rtc6_fastcs.cut_shapes.CutShapes()
 
         # menus
         self.ui.actionExit.triggered.connect(self.quit)
@@ -504,16 +508,26 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(self.image))
 
     def savePoints(self):
+        points_list = []
         now = datetime.now()
         filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
-
+        for i, point in enumerate(self.drawn_points):
+            correctedX = point.x() * calibrate
+            correctedY = point.y() * calibrate
+            if i == 0:
+                points_list.append((correctedX, correctedY, False))
+            else:
+                points_list.append((correctedX, correctedY, True))
+        for point in self.drawn_points:
+            correctedX = point.x() * calibrate
+            correctedY = point.y() * calibrate
+        with open(filename, 'w') as file:
+            file.write(f"{correctedX}, {correctedY}\n")
         
 
-        with open(filename, 'w') as file:
-            for point in self.drawn_points:
-                correctedX = point.x() * calibrate
-                correctedY = point.y() * calibrate
-                file.write(f"{correctedX}, {correctedY}\n")
+        #scanhead = rtc6_fastcs.cut_shapes.CutShapes()
+
+        
                     
     def setupOAV(self):
         for callback in (

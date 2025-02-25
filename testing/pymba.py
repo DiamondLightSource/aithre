@@ -4,12 +4,13 @@ import cv2
 from pymba import Frame
 from time import sleep
 
-# this will ONLY work on a windows machine with Vimba SDK installed and 
+# this will ONLY work on a windows machine with Vimba SDK installed and
 # connected to the same network as the camera
 
 PIXEL_FORMATS_CONVERSIONS = {
-    'BayerRG8': cv2.COLOR_BAYER_RG2RGB,
+    "BayerRG8": cv2.COLOR_BAYER_RG2RGB,
 }
+
 
 def display_frame(frame: Frame, delay: Optional[int] = 1) -> None:
     """
@@ -17,7 +18,7 @@ def display_frame(frame: Frame, delay: Optional[int] = 1) -> None:
     :param frame: The frame object to display.
     :param delay: Display delay in milliseconds, use 0 for indefinite.
     """
-    print('frame {}'.format(frame.data.frameID))
+    print("frame {}".format(frame.data.frameID))
 
     # get a copy of the frame data
     image = frame.buffer_data_numpy()
@@ -29,39 +30,40 @@ def display_frame(frame: Frame, delay: Optional[int] = 1) -> None:
         pass
 
     # display image
-    cv2.imshow('Image', image)
+    cv2.imshow("Image", image)
     cv2.waitKey(delay)
 
-if __name__ == '__main__':
-    print('Pymba version: {}'.format(__version__))
-    print('Vimba C API version: {}'.format(Vimba.version()))
+
+if __name__ == "__main__":
+    print("Pymba version: {}".format(__version__))
+    print("Vimba C API version: {}".format(Vimba.version()))
 
     with Vimba() as vimba:
         # provide camera index or id
-        camera = vimba.camera('DEV_000F314EE126')
+        camera = vimba.camera("DEV_000F314EE126")
         print(camera)
         system = vimba.system()
         print(system)
         interface = vimba.interface(0)
         print(interface)
 
-# list camera ids
+    # list camera ids
     with Vimba() as vimba:
         print(vimba.camera_ids())
 
-# # list feature infos
-#     with Vimba() as vimba:
-#         camera = vimba.camera('DEV_000F314EE126')
-#         camera.open()
+    # # list feature infos
+    #     with Vimba() as vimba:
+    #         camera = vimba.camera('DEV_000F314EE126')
+    #         camera.open()
 
-#         for feature_name in camera.feature_names():
-#             feature = camera.feature(feature_name)
-#             print(feature.info)
+    #         for feature_name in camera.feature_names():
+    #             feature = camera.feature(feature_name)
+    #             print(feature.info)
 
-#         camera.close()
+    #         camera.close()
 
-# set feature values
-    FEATURE_NAME = 'PixelFormat'
+    # set feature values
+    FEATURE_NAME = "PixelFormat"
     with Vimba() as vimba:
         camera = vimba.camera(0)
         camera.open()

@@ -2,7 +2,8 @@ import json
 import httpx
 import asyncio
 
-class carbide():
+
+class carbide:
     def __init__(self, endpoint):
         self.carbideEndPoint = endpoint
         self.requestHeaders = {
@@ -42,7 +43,9 @@ class carbide():
     async def generalStatus(self):
         """Fetch general status asynchronously"""
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.carbideEndPoint}/v1/Basic/GeneralStatus")
+            response = await client.get(
+                f"{self.carbideEndPoint}/v1/Basic/GeneralStatus"
+            )
             return response
 
     async def getInfo(self):
@@ -52,17 +55,17 @@ class carbide():
             general_status, warnings, errors = await asyncio.gather(
                 self.generalStatus(),
                 client.get(f"{self.carbideEndPoint}/v1/Basic/Warnings"),
-                client.get(f"{self.carbideEndPoint}/v1/Basic/Errors")
+                client.get(f"{self.carbideEndPoint}/v1/Basic/Errors"),
             )
-            
+
             # Handle General Status
             if general_status.status_code == 200:
                 print(general_status.text)
-            
+
             # Handle Warnings
             if warnings.status_code == 200:
                 print(warnings.text)
-            
+
             # Handle Errors
             if errors.status_code == 200:
                 print(errors.text)
@@ -137,7 +140,9 @@ class carbide():
     async def isOutputEnabled(self):
         """Check if the output is enabled asynchronously using httpx"""
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.carbideEndPoint}/v1/Basic/IsOutputEnabled")
+            response = await client.get(
+                f"{self.carbideEndPoint}/v1/Basic/IsOutputEnabled"
+            )
 
         if response.status_code == 200:
             self.isoutputenabled = response.text.strip()
@@ -164,7 +169,9 @@ class carbide():
             preset (str, optional): Preset to use as set in GUI. Defaults to "1".
         """
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{self.carbideEndPoint}/v1/Basic/SelectedPresetIndex")
+            response = await client.get(
+                f"{self.carbideEndPoint}/v1/Basic/SelectedPresetIndex"
+            )
 
         if response.status_code == 200:
             self.currentpreset = response.text.strip()
@@ -203,7 +210,7 @@ class carbide():
             print("Preset doesn't exist. Check available presets")
         else:
             print("Error setting preset")
-            
+
     async def changeOutput(self, state="close"):
         """_summary_
 
@@ -213,7 +220,10 @@ class carbide():
         print(f"Requesting output {state}")
         async with httpx.AsyncClient() as client:
             if state == "enable":
-                response = await client.post(f"{self.carbideEndPoint}/v1/Basic/EnableOutput", headers=self.requestHeaders)
+                response = await client.post(
+                    f"{self.carbideEndPoint}/v1/Basic/EnableOutput",
+                    headers=self.requestHeaders,
+                )
                 self.enableoutput = response
                 if response.status_code == 200:
                     print("Output enabled")
@@ -222,7 +232,10 @@ class carbide():
                 else:
                     print("Set output enable error")
             elif state == "close":
-                response = await client.post(f"{self.carbideEndPoint}/v1/Basic/CloseOutput", headers=self.requestHeaders)
+                response = await client.post(
+                    f"{self.carbideEndPoint}/v1/Basic/CloseOutput",
+                    headers=self.requestHeaders,
+                )
                 self.closeoutput = response
                 if response.status_code == 200:
                     print("Output closed")
@@ -262,9 +275,10 @@ class carbide():
         """_summary_"""
         async with httpx.AsyncClient() as client:
             self.gotostandby = await client.post(
-                f"{self.carbideEndPoint}/v1/Basic/GoToStandby", headers=self.requestHeaders
+                f"{self.carbideEndPoint}/v1/Basic/GoToStandby",
+                headers=self.requestHeaders,
             )
-        
+
         if self.gotostandby.status_code == 200:
             await self.actualStateName()
             while self.actualstatename.text.strip() != '"StandingBy"':
@@ -274,7 +288,7 @@ class carbide():
                 print("Laser in standby")
             else:
                 print("Laser not in standby, please check state manually")
-                
+
     async def targetAttenuatorPercentage(self, percentage="0"):
         """_summary_
 
@@ -287,13 +301,13 @@ class carbide():
             )
             if response_actual.status_code == 200:
                 self.actualattenuatorpercentage_float = float(response_actual.text)
-            
+
             response_set = await client.put(
                 f"{self.carbideEndPoint}/v1/Basic/TargetAttenuatorPercentage",
                 data=json.dumps(percentage),
                 headers=self.requestHeaders,
             )
-            
+
             if response_set.status_code == 200:
                 response_target = await client.get(
                     f"{self.carbideEndPoint}/v1/Basic/TargetAttenuatorPercentage"
@@ -326,7 +340,7 @@ class carbide():
                 data=json.dumps(length),
                 headers=self.requestHeaders,
             )
-            
+
             if response_set.status_code == 200:
                 response_target = await client.get(
                     f"{self.carbideEndPoint}/v1/Basic/TargetPulseDuration"
@@ -348,7 +362,7 @@ class carbide():
                 print("Cannot set to this value, likely out of bounds")
             else:
                 print("Error setting pulse duration")
-                
+
     async def targetPpDivider(self, divider="1000"):
         async with httpx.AsyncClient() as client:
             response_set = await client.put(
@@ -574,17 +588,17 @@ class carbide():
                 print("Leak reduction successful")
             elif response.status_code == 403:
                 print("Unable to run leak reduction")
-            
+
+
 async def main():
     run = carbide(endpoint="http://172.23.17.123:20010")
 
     await asyncio.gather(
-        run.isOutputEnabled(),
-        run.selectAndApplyPreset("5"),
-        run.changeOutput("enable")
+        run.isOutputEnabled(), run.selectAndApplyPreset("5"), run.changeOutput("enable")
     )
     await asyncio.sleep(5)
     await run.changeOutput()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

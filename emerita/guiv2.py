@@ -17,8 +17,8 @@ import bin.control as control
 import cothread
 from cothread.catools import caput, caget, cainfo
 
-def main():
 
+def main():
     sg.ChangeLookAndFeel("")
 
     # define the window layout
@@ -30,7 +30,9 @@ def main():
             sg.Button("Start", size=(10, 1), font="Any 14"),
             sg.Button("Stop", size=(10, 1), font="Any 14"),
         ],
-        [sg.Text("X/Z Stage"),],
+        [
+            sg.Text("X/Z Stage"),
+        ],
         [
             sg.Text("X Current"),
             sg.Text(key="stage_x_rbv"),
@@ -57,7 +59,9 @@ def main():
             sg.Button("Z -", size=(5, 1), font="Any 10", key="Z-"),
             sg.Button("Z +", size=(5, 1), font="Any 10", key="Z+"),
         ],
-        [sg.Button("Exit", size=(10, 1), font="Any 14"),],
+        [
+            sg.Button("Exit", size=(10, 1), font="Any 14"),
+        ],
     ]
 
     rbvs = ["stage_x_rbv", "stage_z_rbv", "stage_y_rbv"]
@@ -68,7 +72,7 @@ def main():
     window.Layout(layout)
 
     # ---===--- Event LOOP Read and display frames, operate the GUI --- #
-    cap = cv2.VideoCapture('http://ws464.diamond.ac.uk:8080/OAV.mjpg.mjpg')
+    cap = cv2.VideoCapture("http://ws464.diamond.ac.uk:8080/OAV.mjpg.mjpg")
     recording = False
     while True:
         event, values = window.Read(timeout=0, timeout_key="timeout")
@@ -101,14 +105,11 @@ def main():
             window.FindElement("image").Update(data=imgbytes)
         # update rbvs
         for rbv in rbvs:
-            window.FindElement("{}".format(rbv)).Update(
-                caget(getattr(pv, rbv))
-            )
-        
+            window.FindElement("{}".format(rbv)).Update(caget(getattr(pv, rbv)))
 
 
 main()
 exit()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

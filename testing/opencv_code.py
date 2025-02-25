@@ -27,7 +27,7 @@ class MainWindow(QWidget):
         self.Worker1.ImageUpdate.connect(self.ImageUpdateSlot)
         self.setLayout(self.VBL)
 
-    def getPos(self , event):
+    def getPos(self, event):
         x = event.pos().x()
         y = event.pos().y()
         print(x, y)
@@ -41,7 +41,7 @@ class MainWindow(QWidget):
 
 class Worker1(QThread):
     ImageUpdate = pyqtSignal(QImage)
-            
+
     def run(self):
         self.ThreadActive = True
         Capture = cv2.VideoCapture(2)

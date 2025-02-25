@@ -22,7 +22,11 @@ class Ui_MainWindow(object):
         MainWindow.setFont(font)
         MainWindow.setMouseTracking(False)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../icon.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         MainWindow.setWindowIcon(icon)
         MainWindow.setToolTip("")
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
@@ -65,7 +69,9 @@ class Ui_MainWindow(object):
         self.sliderGain.setObjectName("sliderGain")
         self.readback_grid.addWidget(self.sliderGain, 2, 2, 1, 1)
         self.labstageZ = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labstageZ.sizePolicy().hasHeightForWidth())
@@ -117,12 +123,16 @@ class Ui_MainWindow(object):
         self.omega_rbv.setObjectName("omega_rbv")
         self.readback_grid.addWidget(self.omega_rbv, 7, 2, 1, 1)
         self.gridLayout.addWidget(self.frameFineControl, 3, 2, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem, 3, 3, 1, 1)
         self.start = QtWidgets.QPushButton(self.centralwidget)
         self.start.setObjectName("start")
         self.gridLayout.addWidget(self.start, 2, 0, 1, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem1, 3, 1, 1, 1)
         self.frameRobot = QtWidgets.QFrame(self.centralwidget)
         self.frameRobot.setAutoFillBackground(False)
@@ -142,20 +152,29 @@ class Ui_MainWindow(object):
         self.indicatorGonioSensor.setFrameShape(QtWidgets.QFrame.Box)
         self.indicatorGonioSensor.setText("")
         self.indicatorGonioSensor.setScaledContents(False)
-        self.indicatorGonioSensor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.indicatorGonioSensor.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop
+        )
         self.indicatorGonioSensor.setObjectName("indicatorGonioSensor")
         self.robot_grid.addWidget(self.indicatorGonioSensor, 1, 1, 1, 1)
         self.labRobotActive = QtWidgets.QLabel(self.frameRobot)
         self.labRobotActive.setAlignment(QtCore.Qt.AlignCenter)
         self.labRobotActive.setObjectName("labRobotActive")
         self.robot_grid.addWidget(self.labRobotActive, 9, 0, 1, 1)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         self.robot_grid.addItem(spacerItem2, 7, 0, 1, 2)
         self.goHomeRobot = QtWidgets.QPushButton(self.frameRobot)
         self.goHomeRobot.setObjectName("goHomeRobot")
         self.robot_grid.addWidget(self.goHomeRobot, 10, 1, 1, 1)
         self.currentSamp = QtWidgets.QLabel(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.currentSamp.sizePolicy().hasHeightForWidth())
@@ -168,7 +187,9 @@ class Ui_MainWindow(object):
         self.dry.setObjectName("dry")
         self.robot_grid.addWidget(self.dry, 12, 1, 1, 1)
         self.load = QtWidgets.QPushButton(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.load.sizePolicy().hasHeightForWidth())
@@ -195,10 +216,14 @@ class Ui_MainWindow(object):
         self.unload.setObjectName("unload")
         self.robot_grid.addWidget(self.unload, 12, 0, 1, 1)
         self.labCurrentSamp = QtWidgets.QLabel(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.labCurrentSamp.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.labCurrentSamp.sizePolicy().hasHeightForWidth()
+        )
         self.labCurrentSamp.setSizePolicy(sizePolicy)
         self.labCurrentSamp.setAlignment(QtCore.Qt.AlignCenter)
         self.labCurrentSamp.setObjectName("labCurrentSamp")
@@ -225,7 +250,9 @@ class Ui_MainWindow(object):
         self.stop.setObjectName("stop")
         self.gridLayout.addWidget(self.stop, 2, 2, 1, 1)
         self.oav_stream = QtWidgets.QLabel(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.oav_stream.sizePolicy().hasHeightForWidth())
@@ -236,7 +263,9 @@ class Ui_MainWindow(object):
         self.oav_stream.setFrameShape(QtWidgets.QFrame.WinPanel)
         self.oav_stream.setFrameShadow(QtWidgets.QFrame.Plain)
         self.oav_stream.setText("")
-        self.oav_stream.setPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../icon.png"))
+        self.oav_stream.setPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../icon.png")
+        )
         self.oav_stream.setScaledContents(True)
         self.oav_stream.setAlignment(QtCore.Qt.AlignCenter)
         self.oav_stream.setObjectName("oav_stream")
@@ -250,14 +279,20 @@ class Ui_MainWindow(object):
         self.motion_grid.setSpacing(5)
         self.motion_grid.setObjectName("motion_grid")
         self.down = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.down.sizePolicy().hasHeightForWidth())
         self.down.setSizePolicy(sizePolicy)
         self.down.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../down.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../down.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.On,
+        )
         self.down.setIcon(icon1)
         self.down.setIconSize(QtCore.QSize(60, 60))
         self.down.setAutoRepeat(False)
@@ -271,14 +306,21 @@ class Ui_MainWindow(object):
         self.plus180.setObjectName("plus180")
         self.motion_grid.addWidget(self.plus180, 6, 3, 1, 1)
         self.left = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.left.sizePolicy().hasHeightForWidth())
         self.left.setSizePolicy(sizePolicy)
         self.left.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../left.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../left.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.left.setIcon(icon2)
         self.left.setIconSize(QtCore.QSize(60, 60))
         self.left.setObjectName("left")
@@ -296,14 +338,21 @@ class Ui_MainWindow(object):
         self.buttonSlowOmegaTurn.setObjectName("buttonSlowOmegaTurn")
         self.motion_grid.addWidget(self.buttonSlowOmegaTurn, 2, 0, 1, 1)
         self.up = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.up.sizePolicy().hasHeightForWidth())
         self.up.setSizePolicy(sizePolicy)
         self.up.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../up.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon3.addPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../up.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.On,
+        )
         self.up.setIcon(icon3)
         self.up.setIconSize(QtCore.QSize(60, 60))
         self.up.setObjectName("up")
@@ -320,14 +369,21 @@ class Ui_MainWindow(object):
         self.pushButtonSampleIn.setObjectName("pushButtonSampleIn")
         self.motion_grid.addWidget(self.pushButtonSampleIn, 0, 0, 1, 1)
         self.right = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.right.sizePolicy().hasHeightForWidth())
         self.right.setSizePolicy(sizePolicy)
         self.right.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("/Users/vwg85559/aithre/bin/../right.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon4.addPixmap(
+            QtGui.QPixmap("/Users/vwg85559/aithre/bin/../right.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.On,
+        )
         self.right.setIcon(icon4)
         self.right.setIconSize(QtCore.QSize(60, 60))
         self.right.setObjectName("right")
@@ -351,10 +407,14 @@ class Ui_MainWindow(object):
         self.motion_grid.addWidget(self.zeroAll, 1, 1, 1, 1)
         self.pushButtonSampleOut = QtWidgets.QPushButton(self.framePositionButtons)
         self.pushButtonSampleOut.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonSampleOut.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButtonSampleOut.sizePolicy().hasHeightForWidth()
+        )
         self.pushButtonSampleOut.setSizePolicy(sizePolicy)
         self.pushButtonSampleOut.setMinimumSize(QtCore.QSize(50, 50))
         self.pushButtonSampleOut.setMaximumSize(QtCore.QSize(50, 50))
@@ -411,7 +471,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Aithre v4.2 - I23 Laser Shaping"))
+        MainWindow.setWindowTitle(
+            _translate("MainWindow", "Aithre v4.2 - I23 Laser Shaping")
+        )
         self.labExposure.setText(_translate("MainWindow", "Exposure"))
         self.labY.setText(_translate("MainWindow", "Y"))
         self.labstageZ.setText(_translate("MainWindow", "Stage Z"))
@@ -439,7 +501,7 @@ class Ui_MainWindow(object):
         self.labGonioSensor.setText(_translate("MainWindow", "Gonio Sensor"))
         self.snapshot.setText(_translate("MainWindow", "Snapshot"))
         self.AutoCenter.setText(_translate("MainWindow", "AutoCenter"))
-        self.stop.setText(_translate("MainWindow", "Stop OAV (don\'t press me)"))
+        self.stop.setText(_translate("MainWindow", "Stop OAV (don't press me)"))
         self.buttonFastOmegaTurn.setText(_translate("MainWindow", "Fast Turn"))
         self.plus180.setText(_translate("MainWindow", "+180"))
         self.minus90.setText(_translate("MainWindow", "-90"))
@@ -460,5 +522,9 @@ class Ui_MainWindow(object):
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionSave_log.setText(_translate("MainWindow", "Save log"))
         self.actionRestart_OAV_IOC.setText(_translate("MainWindow", "Restart OAV IOC"))
-        self.actionRestart_Robot_IOC.setText(_translate("MainWindow", "Restart Robot IOC"))
-        self.actionRestart_Gonio_IOC.setText(_translate("MainWindow", "Restart Gonio IOC"))
+        self.actionRestart_Robot_IOC.setText(
+            _translate("MainWindow", "Restart Robot IOC")
+        )
+        self.actionRestart_Gonio_IOC.setText(
+            _translate("MainWindow", "Restart Gonio IOC")
+        )

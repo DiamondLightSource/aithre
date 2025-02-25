@@ -22,7 +22,9 @@ class Ui_MainWindow(object):
         MainWindow.setFont(font)
         MainWindow.setMouseTracking(False)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap("../icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         MainWindow.setWindowIcon(icon)
         MainWindow.setToolTip("")
         MainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
@@ -33,18 +35,26 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem, 3, 3, 1, 1)
         self.start = QtWidgets.QPushButton(self.centralwidget)
         self.start.setObjectName("start")
         self.gridLayout.addWidget(self.start, 2, 0, 1, 1)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         self.gridLayout.addItem(spacerItem1, 3, 1, 1, 1)
         self.framePositionButtons = QtWidgets.QFrame(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.framePositionButtons.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.framePositionButtons.sizePolicy().hasHeightForWidth()
+        )
         self.framePositionButtons.setSizePolicy(sizePolicy)
         self.framePositionButtons.setMinimumSize(QtCore.QSize(500, 400))
         self.framePositionButtons.setMaximumSize(QtCore.QSize(500, 400))
@@ -67,27 +77,37 @@ class Ui_MainWindow(object):
         self.plus5.setObjectName("plus5")
         self.motion_grid.addWidget(self.plus5, 6, 0, 1, 1)
         self.right = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.right.sizePolicy().hasHeightForWidth())
         self.right.setSizePolicy(sizePolicy)
         self.right.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("../right.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(
+            QtGui.QPixmap("../right.png"), QtGui.QIcon.Normal, QtGui.QIcon.On
+        )
         self.right.setIcon(icon1)
         self.right.setIconSize(QtCore.QSize(60, 60))
         self.right.setObjectName("right")
         self.motion_grid.addWidget(self.right, 1, 2, 1, 1)
         self.left = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.left.sizePolicy().hasHeightForWidth())
         self.left.setSizePolicy(sizePolicy)
         self.left.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("../left.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap("../left.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.left.setIcon(icon2)
         self.left.setIconSize(QtCore.QSize(60, 60))
         self.left.setObjectName("left")
@@ -129,10 +149,14 @@ class Ui_MainWindow(object):
         self.motion_grid.addWidget(self.buttonFastOmegaTurn, 2, 2, 1, 1)
         self.pushButtonZPlus = QtWidgets.QPushButton(self.framePositionButtons)
         self.pushButtonZPlus.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButtonZPlus.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.pushButtonZPlus.sizePolicy().hasHeightForWidth()
+        )
         self.pushButtonZPlus.setSizePolicy(sizePolicy)
         self.pushButtonZPlus.setMinimumSize(QtCore.QSize(50, 50))
         self.pushButtonZPlus.setMaximumSize(QtCore.QSize(50, 50))
@@ -142,7 +166,10 @@ class Ui_MainWindow(object):
         self.pushButtonZPlus.setObjectName("pushButtonZPlus")
         self.motion_grid.addWidget(self.pushButtonZPlus, 0, 2, 1, 1)
         self.up = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.up.sizePolicy().hasHeightForWidth())
@@ -155,14 +182,18 @@ class Ui_MainWindow(object):
         self.up.setObjectName("up")
         self.motion_grid.addWidget(self.up, 0, 1, 1, 1)
         self.down = QtWidgets.QPushButton(self.framePositionButtons)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.down.sizePolicy().hasHeightForWidth())
         self.down.setSizePolicy(sizePolicy)
         self.down.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("../down.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon4.addPixmap(
+            QtGui.QPixmap("../down.png"), QtGui.QIcon.Normal, QtGui.QIcon.On
+        )
         self.down.setIcon(icon4)
         self.down.setIconSize(QtCore.QSize(60, 60))
         self.down.setAutoRepeat(False)
@@ -174,7 +205,9 @@ class Ui_MainWindow(object):
         self.stop.setObjectName("stop")
         self.gridLayout.addWidget(self.stop, 2, 2, 1, 1)
         self.oav_stream = QtWidgets.QLabel(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.oav_stream.sizePolicy().hasHeightForWidth())
@@ -191,10 +224,14 @@ class Ui_MainWindow(object):
         self.oav_stream.setObjectName("oav_stream")
         self.gridLayout.addWidget(self.oav_stream, 0, 0, 2, 3)
         self.frameFineControl = QtWidgets.QFrame(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frameFineControl.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frameFineControl.sizePolicy().hasHeightForWidth()
+        )
         self.frameFineControl.setSizePolicy(sizePolicy)
         self.frameFineControl.setMinimumSize(QtCore.QSize(400, 300))
         self.frameFineControl.setMaximumSize(QtCore.QSize(400, 300))
@@ -204,7 +241,9 @@ class Ui_MainWindow(object):
         self.readback_grid = QtWidgets.QGridLayout(self.frameFineControl)
         self.readback_grid.setObjectName("readback_grid")
         self.gony_rbv = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.gony_rbv.sizePolicy().hasHeightForWidth())
@@ -240,7 +279,9 @@ class Ui_MainWindow(object):
         self.sliderGain.setObjectName("sliderGain")
         self.readback_grid.addWidget(self.sliderGain, 2, 2, 1, 1)
         self.stagez_rbv = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.stagez_rbv.sizePolicy().hasHeightForWidth())
@@ -267,7 +308,9 @@ class Ui_MainWindow(object):
         self.labGain.setObjectName("labGain")
         self.readback_grid.addWidget(self.labGain, 2, 0, 1, 1)
         self.gonz_rbv = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.gonz_rbv.sizePolicy().hasHeightForWidth())
@@ -277,7 +320,9 @@ class Ui_MainWindow(object):
         self.gonz_rbv.setObjectName("gonz_rbv")
         self.readback_grid.addWidget(self.gonz_rbv, 5, 2, 1, 1)
         self.omega_rbv = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.omega_rbv.sizePolicy().hasHeightForWidth())
@@ -295,7 +340,9 @@ class Ui_MainWindow(object):
         self.sliderZoom.setObjectName("sliderZoom")
         self.readback_grid.addWidget(self.sliderZoom, 0, 2, 1, 1)
         self.labstageZ = QtWidgets.QLabel(self.frameFineControl)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labstageZ.sizePolicy().hasHeightForWidth())
@@ -317,10 +364,14 @@ class Ui_MainWindow(object):
         self.readback_grid.addWidget(self.labOmega, 7, 0, 1, 2)
         self.gridLayout.addWidget(self.frameFineControl, 3, 2, 1, 1)
         self.tabWidget_robot_laser = QtWidgets.QTabWidget(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.tabWidget_robot_laser.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.tabWidget_robot_laser.sizePolicy().hasHeightForWidth()
+        )
         self.tabWidget_robot_laser.setSizePolicy(sizePolicy)
         self.tabWidget_robot_laser.setMinimumSize(QtCore.QSize(240, 710))
         self.tabWidget_robot_laser.setMaximumSize(QtCore.QSize(240, 710))
@@ -347,20 +398,29 @@ class Ui_MainWindow(object):
         self.indicatorGonioSensor.setFrameShape(QtWidgets.QFrame.Box)
         self.indicatorGonioSensor.setText("")
         self.indicatorGonioSensor.setScaledContents(False)
-        self.indicatorGonioSensor.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.indicatorGonioSensor.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop
+        )
         self.indicatorGonioSensor.setObjectName("indicatorGonioSensor")
         self.robot_grid.addWidget(self.indicatorGonioSensor, 1, 1, 1, 1)
         self.labRobotActive = QtWidgets.QLabel(self.frameRobot)
         self.labRobotActive.setAlignment(QtCore.Qt.AlignCenter)
         self.labRobotActive.setObjectName("labRobotActive")
         self.robot_grid.addWidget(self.labRobotActive, 9, 0, 1, 1)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         self.robot_grid.addItem(spacerItem2, 7, 0, 1, 2)
         self.goHomeRobot = QtWidgets.QPushButton(self.frameRobot)
         self.goHomeRobot.setObjectName("goHomeRobot")
         self.robot_grid.addWidget(self.goHomeRobot, 10, 1, 1, 1)
         self.currentSamp = QtWidgets.QLabel(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.currentSamp.sizePolicy().hasHeightForWidth())
@@ -373,7 +433,9 @@ class Ui_MainWindow(object):
         self.dry.setObjectName("dry")
         self.robot_grid.addWidget(self.dry, 12, 1, 1, 1)
         self.load = QtWidgets.QPushButton(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.load.sizePolicy().hasHeightForWidth())
@@ -400,10 +462,14 @@ class Ui_MainWindow(object):
         self.unload.setObjectName("unload")
         self.robot_grid.addWidget(self.unload, 12, 0, 1, 1)
         self.labCurrentSamp = QtWidgets.QLabel(self.frameRobot)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.labCurrentSamp.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.labCurrentSamp.sizePolicy().hasHeightForWidth()
+        )
         self.labCurrentSamp.setSizePolicy(sizePolicy)
         self.labCurrentSamp.setAlignment(QtCore.Qt.AlignCenter)
         self.labCurrentSamp.setObjectName("labCurrentSamp")
@@ -574,7 +640,9 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Aithre v4.2 - I23 Laser Shaping"))
+        MainWindow.setWindowTitle(
+            _translate("MainWindow", "Aithre v4.2 - I23 Laser Shaping")
+        )
         self.start.setText(_translate("MainWindow", "Start OAV"))
         self.plus180.setText(_translate("MainWindow", "+180"))
         self.zeroAll.setText(_translate("MainWindow", "ZeroAll"))
@@ -618,7 +686,10 @@ class Ui_MainWindow(object):
         self.labGonioSensor.setText(_translate("MainWindow", "Gonio Sensor"))
         self.snapshot.setText(_translate("MainWindow", "Snapshot"))
         self.AutoCenter.setText(_translate("MainWindow", "AutoCenter"))
-        self.tabWidget_robot_laser.setTabText(self.tabWidget_robot_laser.indexOf(self.tab_robot), _translate("MainWindow", "Robot"))
+        self.tabWidget_robot_laser.setTabText(
+            self.tabWidget_robot_laser.indexOf(self.tab_robot),
+            _translate("MainWindow", "Robot"),
+        )
         self.pushButtonStartupLaser.setText(_translate("MainWindow", "Startup"))
         self.labLaserStatus.setText(_translate("MainWindow", "Status"))
         self.pushButtonSetAttenuator.setText(_translate("MainWindow", "Set"))
@@ -632,12 +703,21 @@ class Ui_MainWindow(object):
         self.labDivider.setText(_translate("MainWindow", "Divider"))
         self.pushButtonEnableLaser.setText(_translate("MainWindow", "Enable"))
         self.labEMISSION.setText(_translate("MainWindow", "EMISSION"))
-        self.tabWidget_robot_laser.setTabText(self.tabWidget_robot_laser.indexOf(self.tab_laser), _translate("MainWindow", "Laser"))
+        self.tabWidget_robot_laser.setTabText(
+            self.tabWidget_robot_laser.indexOf(self.tab_laser),
+            _translate("MainWindow", "Laser"),
+        )
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuIOCs.setTitle(_translate("MainWindow", "IOCs"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionSave_log.setText(_translate("MainWindow", "Save log"))
         self.actionRestart_OAV_IOC.setText(_translate("MainWindow", "Restart OAV IOC"))
-        self.actionRestart_Robot_IOC.setText(_translate("MainWindow", "Restart Robot IOC"))
-        self.actionRestart_Gonio_IOC.setText(_translate("MainWindow", "Restart Gonio IOC"))
-        self.actionRestartLaserIOC.setText(_translate("MainWindow", "Restart Laser IOC"))
+        self.actionRestart_Robot_IOC.setText(
+            _translate("MainWindow", "Restart Robot IOC")
+        )
+        self.actionRestart_Gonio_IOC.setText(
+            _translate("MainWindow", "Restart Gonio IOC")
+        )
+        self.actionRestartLaserIOC.setText(
+            _translate("MainWindow", "Restart Laser IOC")
+        )

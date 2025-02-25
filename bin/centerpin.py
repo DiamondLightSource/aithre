@@ -163,7 +163,6 @@ def my_plan(xyz_stage):
     #     time.sleep(0.1)
 
     for omega_val in range(0, 190, 10):
-
         yield from bps.mv(xyz_stage.omega.user_setpoint, omega_val)
         await_value(xyz_stage.omega.user_readback, omega_val).wait(10)
         # ca.caput(pv.omega, omega_val)
@@ -191,7 +190,14 @@ def my_plan(xyz_stage):
             Zmove = z_curr + (
                 math.cos(math.radians(omega)) * ((goto_y - beamY) * calibrate)
             )
-            yield from bps.mv(xyz_stage.stage_x, Xmove, xyz_stage.gonio_y, Ymove, xyz_stage.gonio_z, Zmove)
+            yield from bps.mv(
+                xyz_stage.stage_x,
+                Xmove,
+                xyz_stage.gonio_y,
+                Ymove,
+                xyz_stage.gonio_z,
+                Zmove,
+            )
             # ca.caput(pv.stage_x, Xmove)
             # ca.caput(pv.gonio_y, Ymove)
             # ca.caput(pv.gonio_z, Zmove)
