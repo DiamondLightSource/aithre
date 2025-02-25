@@ -12,3 +12,4 @@ captures/
 .venv
 *.pyc
 *_points.txt
+aithre.egg-info/
