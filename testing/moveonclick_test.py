@@ -1,22 +1,7 @@
-import numpy as np
-import tkinter as tk
-from tkinter import Button, Label, Tk, Entry, PhotoImage, OptionMenu
-from PIL import Image, ImageTk
 import cv2 as cv
-import os
-import datetime
-import subprocess
 import pv_py3 as pv
-import os, re, sys
-import math, time, string, inspect
-from datetime import datetime
-from time import sleep
-from ca_py3 import caput, caget
-import logging as lg
-import i24ssx_Chip_Collect_py3v1 as collect
+from ca_py3 import caput
 import i24ssx_Chip_Manager_py3v1 as manager
-import i24ssx_Chip_StartUp_py3v1 as startup
-import i24ssx_Chip_Mapping_py3v1 as mapping
 
 ###################################################
 #   Move on click gui for fixed targets at I24    #

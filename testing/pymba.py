@@ -2,7 +2,6 @@ from pymba import Vimba, __version__
 from typing import Optional
 import cv2
 from pymba import Frame
-from time import sleep
 
 # this will ONLY work on a windows machine with Vimba SDK installed and
 # connected to the same network as the camera

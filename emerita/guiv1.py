@@ -1,9 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-import sys
-import time
-import seaborn as sns
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 window = tk.Tk()
 window.title("DLS Laser Shaping System")

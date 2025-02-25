@@ -257,7 +257,7 @@ class carbide:
             else:
                 print("Cannot get requested attenuator percentage")
         elif self.settargetattenuatorpercentage.status_code == 403:
-            print(f"Cannot set to this value, likely out of bounds")
+            print("Cannot set to this value, likely out of bounds")
         else:
             print("Error setting target attenuator percentage")
 
@@ -287,7 +287,7 @@ class carbide:
             else:
                 print("Cannot get requested pulse duration")
         elif self.settargetpulseduration.status_code == 403:
-            print(f"Cannot set to this value, likely out of bounds")
+            print("Cannot set to this value, likely out of bounds")
         else:
             print("Error setting pulse duration")
 
@@ -334,7 +334,7 @@ class carbide:
             else:
                 print("Cannot get requested pulse duration")
         elif self.settargetppdivider.status_code == 403:
-            print(f"Cannot set to this value, likely out of bounds")
+            print("Cannot set to this value, likely out of bounds")
         else:
             print("Error setting divider")
 
@@ -363,7 +363,7 @@ class carbide:
             else:
                 print("Cannot get requested RA frequency")
         elif self.settargetrafrequency.status_code == 403:
-            print(f"Cannot set RA frequency to this value, likely out of bounds")
+            print("Cannot set RA frequency to this value, likely out of bounds")
         else:
             print("Error setting RA frequency")
 

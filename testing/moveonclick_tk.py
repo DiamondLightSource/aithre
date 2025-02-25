@@ -1,17 +1,7 @@
-import numpy as np
-import tkinter as tk
-from tkinter import Button, Label, Tk, Entry, PhotoImage, OptionMenu
-from PIL import Image, ImageTk
 import cv2 as cv
-import os
-import datetime
-import subprocess
 import pv
 from bin.control import ca
-import os, re, sys
-import math, time, string, inspect
-from datetime import datetime
-from time import sleep
+import math
 
 # Set beam position and scale.
 beamX = 843

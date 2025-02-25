@@ -6,16 +6,10 @@ if sys.version_info[0] >= 3:
 else:
     import PySimpleGUI27 as sg
 import cv2
-import numba as np
 from numpy import full as full
 from sys import exit as exit
-import time
-import seaborn as sns
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import pv
-import bin.control as control
-import cothread
-from cothread.catools import caput, caget, cainfo
+from cothread.catools import caput, caget
 
 
 def main():
