@@ -2,11 +2,9 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
-# import rtc6_fastcs
-# import rtc6_fastcs.cut_shapes
-# import rtc6_fastcs.plan_stubs
 from control import ca
 import pv
+#from rtc6_fastcs import cut_shapes
 import math
 import numpy as np
 import time
@@ -518,12 +516,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 points_list.append((correctedX, correctedY, False))
             else:
                 points_list.append((correctedX, correctedY, True))
-        for point in self.drawn_points:
-            correctedX = point.x() * calibrate
-            correctedY = point.y() * calibrate
         with open(filename, 'w') as file:
             file.write(f"{correctedX}, {correctedY}\n")
-        
+        self.points_list = points_list * self.ui.spinBoxRepetitions.value()
+        print(points_list)
+        self.cutShapes()
+
+    # def cutShapes(self):
+    #     cut = cut_shapes.CutShapes()
+    #     cut.connect_to_rtc()
+    #     cut.cut_polygon_from_gui(self.points_list)
 
         #scanhead = rtc6_fastcs.cut_shapes.CutShapes()
 
