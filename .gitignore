@@ -13,3 +13,5 @@ captures/
 *.pyc
 *_points.txt
 aithre.egg-info/
+.python-version
+uv.lock
