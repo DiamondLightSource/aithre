@@ -510,8 +510,8 @@ class MainWindow(QtWidgets.QMainWindow):
         now = datetime.now()
         filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
         for i, point in enumerate(self.drawn_points):
-            correctedX = point.x() * calibrate
-            correctedY = point.y() * calibrate
+            correctedX = round((point.x() * calibrate), 4)
+            correctedY = round((point.y() * calibrate), 4)
             if i == 0:
                 points_list.append((correctedX, correctedY, False))
             else:
