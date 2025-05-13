@@ -516,11 +516,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 points_list.append((correctedX, correctedY, False))
             else:
                 points_list.append((correctedX, correctedY, True))
-        with open(filename, 'w') as file:
-            file.write(f"{correctedX}, {correctedY}\n")
-        self.points_list = points_list * self.ui.spinBoxRepetitions.value()
-        print(points_list)
-        self.cutShapes()
+        
+        if points_list:
+            with open(filename, 'w') as file:
+                for point in points_list:
+                    file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
+            self.points_list = points_list * self.ui.spinBoxRepetitions.value()
+            print(points_list)
+        else:
+            print("No shapes to cut...")
 
     # def cutShapes(self):
     #     cut = cut_shapes.CutShapes()
