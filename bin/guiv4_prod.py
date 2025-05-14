@@ -468,6 +468,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def onMouse(self, event):
         if self.canvasMode == "move":
+            self.zoomclickcal = int(self.ui.sliderZoom.value())
+            if self.zoomclickcal == 1:
+                self.xcent = beamX
+                self.ycent = beamY
+            else:
+                self.xcent = 2012
+                self.ycent = 1518
             x = event.pos().x()
             x = x * feed_display_ratio
             y = event.pos().y()
@@ -477,15 +484,14 @@ class MainWindow(QtWidgets.QMainWindow):
             y_curr = float(ca.caget(pv.gonio_y_rbv))
             z_curr = float(ca.caget(pv.gonio_z_rbv))
             omega = float(ca.caget(pv.omega_rbv))
-            #print("Clicked", x, y)
-            Xmove = x_curr - ((x - beamX) * calibrate)
-            #print((x - beamX))
-            Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - beamY) * calibrate))
-            Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - beamY) * calibrate))
+            print("Clicked", x, y)
+            Xmove = x_curr - ((x - self.xcent) * (calibrate / self.zoomclickcal))
+            Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
+            Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
             print("Moving", Xmove, Ymove, Zmove)
-            ca.caput(pv.stage_x, Xmove)
-            ca.caput(pv.gonio_y, Ymove)
-            ca.caput(pv.gonio_z, Zmove)
+            ca.caput(pv.stage_x, round(Xmove, 4))
+            ca.caput(pv.gonio_y, round(Ymove, 4))
+            ca.caput(pv.gonio_z, round(Zmove, 4))
         elif self.canvasMode == "draw":
             self.drawn_points.append(event.pos())
             self.redrawPoints()
