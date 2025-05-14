@@ -18,8 +18,8 @@ import laserControl as lc
 import httpx
 from qasync import QEventLoop
 
-
 version = "4.2.6"
+print(f"Aithre - Version {version}")
 OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
 LASERENDPOINT = "http://172.23.17.123:20010"
 # Set grid/beam position/scale.
@@ -37,9 +37,6 @@ calibrate = (
     camera_pixel_size / feed_display_ratio
 ) / 1000  # play around with the end number to find correct
 
-print(
-    f"Feed to display ratio is {str(feed_display_ratio)} so calibrate value for pixel size of {str(camera_pixel_size)}um should be {str(calibrate)}"
-)
 
 
 # separate thread for OAV
