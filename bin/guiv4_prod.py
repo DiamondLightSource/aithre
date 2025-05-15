@@ -17,6 +17,10 @@ import asyncio
 import laserControl as lc
 import httpx
 from qasync import QEventLoop
+from blueapi import client
+
+bac = client
+bac.get_plans()
 
 version = "4.2.6"
 print(f"Aithre - Version {version}")
@@ -37,7 +41,7 @@ calibrate = (
     camera_pixel_size / feed_display_ratio
 ) / 1000  # play around with the end number to find correct
 
-
+client = client
 
 # separate thread for OAV
 class OAVThread(QtCore.QThread):
