@@ -18,6 +18,12 @@ import laserControl as lc
 import httpx
 import argparse
 from qasync import QEventLoop
+from blueapi.client.client import BlueapiClient
+from blueapi.client.rest import BlueapiRestClient
+from blueapi.cli.format import OutputFormat
+from blueapi.worker import Task
+from blueapi.config import ConfigLoader, ApplicationConfig
+from pathlib import Path
 from blueapi import client
 
 parser = argparse.ArgumentParser()
@@ -47,7 +53,20 @@ calibrate = (
     camera_pixel_size / feed_display_ratio
 ) / 1000  # play around with the end number to find correct
 
-client = client
+bac = BlueapiClient(BlueapiRestClient())
+plans = bac.get_plans()
+OutputFormat.COMPACT.display(plans)
+
+config_loader = ConfigLoader(ApplicationConfig)
+user = os.environ.get("USER")
+config_file = Path("/scratch/" + user + "/aithre/config.yaml")
+
+while not config_file.is_file():
+    print("Error: Config file not found")
+    config_file = input("Please enter config filepath:\n")
+
+config_loader.use_values_from_yaml(config_file)
+
 
 # separate thread for OAV
 class OAVThread(QtCore.QThread):
