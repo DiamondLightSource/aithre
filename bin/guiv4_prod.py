@@ -462,15 +462,6 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
 
 
-    def goTopm3600(self):
-        gonio_current = float(ca.caget(pv.omega_rbv))
-        if gonio_current <= 0:
-            gonio_request = 3600
-        else:
-            gonio_request = -3600
-        print("Moving gonio omega to", str(gonio_request))
-        ca.caput(pv.omega, gonio_request)
-
     def toggleCanvasMode(self, mode):
         if mode == "move":
             self.canvasMode = "move"
