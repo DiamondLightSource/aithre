@@ -309,25 +309,44 @@ class MainWindow(QtWidgets.QMainWindow):
         # th4.beamlineSafe.connect(self.beamlineSafeStatus)
         # th4.start()
         # gonio rotation buttons
-        self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
-        self.ui.buttonFastOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 40))
-        self.ui.plusMinus3600.clicked.connect(self.goTopm3600)
-        self.ui.minus180.clicked.connect(lambda: self.gonioRotate(-180))
-        self.ui.plus180.clicked.connect(lambda: self.gonioRotate(180))
-        self.ui.minus90.clicked.connect(lambda: self.gonioRotate(-90))
-        self.ui.plus90.clicked.connect(lambda: self.gonioRotate(90))
-        self.ui.minus15.clicked.connect(lambda: self.gonioRotate(-15))
-        self.ui.plus15.clicked.connect(lambda: self.gonioRotate(15))
-        self.ui.minus5.clicked.connect(lambda: self.gonioRotate(-5))
-        self.ui.plus5.clicked.connect(lambda: self.gonioRotate(5))
-        self.ui.zero.clicked.connect(lambda: self.gonioRotate(0))
+        def set_omega_velocity(velocity):
+            bac.create_and_start_task(
+                Task(name="change_goniometer_turn_speed", params={"velocity": velocity})
+            )
+
+        def gonio_rotate(amount):
+            bac.create_and_start_task(
+                Task(name="rotate_gonio_relative", params={"value": amount})
+            )
+
+        def jog_sample(direction, amount = 0.005):
+            bac.create_and_start_task(Task(
+                name="jog_sample",
+                params={"direction": direction, "increment_size": amount},
+            ))
+        
+        def go_to_max():
+            bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
+
+        self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: set_omega_velocity(15))
+        self.ui.buttonFastOmegaTurn.clicked.connect(lambda: set_omega_velocity(40))
+        self.ui.plusMinus3600.clicked.connect(lambda: go_to_max())
+        self.ui.minus180.clicked.connect(lambda: gonio_rotate(-180))
+        self.ui.plus180.clicked.connect(lambda: gonio_rotate(180))
+        self.ui.minus90.clicked.connect(lambda: gonio_rotate(-90))
+        self.ui.plus90.clicked.connect(lambda: gonio_rotate(90))
+        self.ui.minus15.clicked.connect(lambda: gonio_rotate(-15))
+        self.ui.plus15.clicked.connect(lambda: gonio_rotate(15))
+        self.ui.minus5.clicked.connect(lambda: gonio_rotate(-5))
+        self.ui.plus5.clicked.connect(lambda: gonio_rotate(5))
+        self.ui.zero.clicked.connect(lambda: gonio_rotate(0))
         # jog buttons
-        self.ui.up.clicked.connect(lambda: self.jogSample("up"))
-        self.ui.down.clicked.connect(lambda: self.jogSample("down"))
-        self.ui.left.clicked.connect(lambda: self.jogSample("left"))
-        self.ui.right.clicked.connect(lambda: self.jogSample("right"))
-        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
-        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
+        self.ui.up.clicked.connect(lambda: jog_sample("up"))
+        self.ui.down.clicked.connect(lambda: jog_sample("down"))
+        self.ui.left.clicked.connect(lambda: jog_sample("left"))
+        self.ui.right.clicked.connect(lambda: jog_sample("right"))
+        self.ui.pushButtonZMinus.clicked.connect(lambda: jog_sample("ZMinus", 0.05))
+        self.ui.pushButtonZPlus.clicked.connect(lambda: jog_sample("ZPlus", 0.05))
         # exposure and gain sliders
         self.ui.sliderExposure.valueChanged.connect(self.changeExposureGain)
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
@@ -431,39 +450,6 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.oav_cam_acqtime, (self.ui.sliderExposure.value() / 100))
         ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
 
-    def jogSample(self, direction):
-        if direction == "right":
-            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
-        elif direction == "left":
-            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
-        elif direction == "up":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-        elif direction == "down":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-        elif direction == "ZPlus":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
-        elif direction == "ZMinus":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
-        else:
-            pass
 
     def goTopm3600(self):
         gonio_current = float(ca.caget(pv.omega_rbv))
@@ -616,15 +602,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     print("Failed to save image. Try as a .jpg")
             except Exception as e:
                 print(f"An error occurred while saving the image: {e}")
-
-    def gonioRotate(self, amount):
-        gonio_current = float(ca.caget(pv.omega_rbv))
-        if amount == 0:
-            gonio_request = 0
-        else:
-            gonio_request = gonio_current + amount
-        print("Moving gonio omega to", str(gonio_request))
-        ca.caput(pv.omega, gonio_request)
 
     def updateRBVs(self, rbvs):
         # stagez, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagex, stagey
