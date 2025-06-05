@@ -16,11 +16,17 @@ import pickle
 import asyncio
 import laserControl as lc
 import httpx
+import argparse
 from qasync import QEventLoop
 from blueapi import client
 
-bac = client
-bac.get_plans()
+parser = argparse.ArgumentParser()
+parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
+args = parser.parse_args()
+
+dev_mode = args.dev
+if dev_mode:
+    print("Running in development mode...")
 
 version = "4.2.6"
 print(f"Aithre - Version {version}")
@@ -32,9 +38,9 @@ line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
 beamX = 2210
 beamY = 1186
-feed_width = int(ca.caget(pv.oav_max_x))
-display_width = 2012  # 2012
-display_height = 1528  # 1518
+feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x))
+display_width = 600 if dev_mode else 2012  # 2012
+display_height = 240 if dev_mode else 1528  # 1518
 camera_pixel_size = 1.85  # Alvium1240M
 feed_display_ratio = feed_width / display_width
 calibrate = (
@@ -142,7 +148,7 @@ class RBVThread(QtCore.QThread):
     rbvUpdate = QtCore.pyqtSignal(list)
 
     def run(self):
-        while True:
+        while not dev_mode:
             time.sleep(1)
             allRBVsList = []
             allRBVsList += [str(ca.caget(pv.stage_x_rbv))]
@@ -262,10 +268,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionExit.triggered.connect(self.quit)
         # sliders and sensors
         self.ui.sliderExposure.setProperty(
-            "value", str(round(float(ca.caget(pv.oav_cam_acqtime_rbv)) * 100))
+            "value", 0 if dev_mode else str(round(float(ca.caget(pv.oav_cam_acqtime_rbv)) * 100))
         )
         self.ui.sliderGain.setProperty(
-            "value", str(round(float(ca.caget(pv.oav_cam_gain_rbv))))
+            "value", 0 if dev_mode else str(round(float(ca.caget(pv.oav_cam_gain_rbv))))
         )
         # OAV zoom setup
         self.ui.sliderZoom.valueChanged.connect(self.handleZoom)
@@ -336,9 +342,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButtonClear.clicked.connect(lambda: self.drawn_points.clear())
         self.ui.pushButtonCut.clicked.connect(self.savePoints)
 
-        self.laserStatusThread = LaserStatusThread()
-        self.laserStatusThread.statusUpdate.connect(self.updateLaserStatus)
-        self.laserStatusThread.start()
+        if not dev_mode:
+            self.laserStatusThread = LaserStatusThread()
+            self.laserStatusThread.statusUpdate.connect(self.updateLaserStatus)
+            self.laserStatusThread.start()
 
     def updateLaserStatus(self, status_dict):
         if status_dict["IsOutputEnabled"] == "true":
@@ -543,20 +550,21 @@ class MainWindow(QtWidgets.QMainWindow):
         
                     
     def setupOAV(self):
-        for callback in (
-            pv.oav_roi_ecb,
-            pv.oav_arr_ecb,
-            pv.oav_stat_ecb,
-            pv.oav_proc_ecb,
-            pv.oav_over_ecb,
-            pv.oav_fimg_ecb,
-            pv.oav_tiff_ecb,
-            pv.oav_hdf5_ecb,
-            pv.oav_pva_ecb,
-        ):
-            ca.caput(callback, "Disable")
-        ca.caput(pv.oav_mjpg_maxw, 4024)
-        ca.caput(pv.oav_mjpg_maxh, 3036)
+        if not dev_mode:
+            for callback in (
+                pv.oav_roi_ecb,
+                pv.oav_arr_ecb,
+                pv.oav_stat_ecb,
+                pv.oav_proc_ecb,
+                pv.oav_over_ecb,
+                pv.oav_fimg_ecb,
+                pv.oav_tiff_ecb,
+                pv.oav_hdf5_ecb,
+                pv.oav_pva_ecb,
+            ):
+                ca.caput(callback, "Disable")
+            ca.caput(pv.oav_mjpg_maxw, 4024)
+            ca.caput(pv.oav_mjpg_maxh, 3036)
 
     def oavStart(self):
         ca.caput(pv.oav_acquire, "Acquire")
