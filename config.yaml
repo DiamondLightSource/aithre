@@ -1,0 +1,13 @@
+---
+stomp:
+  host: "localhost"
+  port: 61613
+  auth:
+    username: "guest"
+    password: "guest"
+env:
+  sources:
+    - kind: planFunctions
+      module: mx_bluesky.beamlines.aithre_lasershaping
+    - kind: dodal
+      module: dodal.beamlines.aithre
