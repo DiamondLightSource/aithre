@@ -24,7 +24,6 @@ from blueapi.cli.format import OutputFormat
 from blueapi.worker import Task
 from blueapi.config import ConfigLoader, ApplicationConfig
 from pathlib import Path
-from blueapi import client
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
