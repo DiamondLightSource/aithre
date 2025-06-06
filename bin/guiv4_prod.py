@@ -336,6 +336,9 @@ class MainWindow(QtWidgets.QMainWindow):
         
         def go_to_max():
             bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
+        
+        def gonio_zero_all():
+            bac.create_and_start_task(Task(name="go_to_zero"))
 
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: set_omega_velocity(15))
         self.ui.buttonFastOmegaTurn.clicked.connect(lambda: set_omega_velocity(40))
@@ -349,6 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.minus5.clicked.connect(lambda: gonio_rotate(-5))
         self.ui.plus5.clicked.connect(lambda: gonio_rotate(5))
         self.ui.zero.clicked.connect(lambda: gonio_rotate(0))
+        self.ui.zeroAll.clicked.connect(gonio_zero_all())
         # jog buttons
         self.ui.up.clicked.connect(lambda: jog_sample("up"))
         self.ui.down.clicked.connect(lambda: jog_sample("down"))
@@ -359,7 +363,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # exposure and gain sliders
         self.ui.sliderExposure.valueChanged.connect(self.changeExposureGain)
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
-        self.ui.zeroAll.clicked.connect(self.returntozero)
         # robot buttons
         self.ui.resetRobot.clicked.connect(lambda: ca.caput(pv.robot_reset, 1))
         self.ui.load.clicked.connect(self.loadNextPin)
@@ -446,10 +449,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def quit(self):
         sys.exit()
-
-    def returntozero(self):
-        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
-            ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
         self.zoomLevel = zoomValue
