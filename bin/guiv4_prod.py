@@ -23,7 +23,11 @@ from blueapi.client.rest import BlueapiRestClient
 from blueapi.cli.format import OutputFormat
 from blueapi.worker import Task
 from blueapi.config import ConfigLoader, ApplicationConfig
+from mx_bluesky.beamlines.aithre_lasershaping import get_rbvs
 from pathlib import Path
+import cothread
+cothread.iqt
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
@@ -43,7 +47,7 @@ line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
 beamX = 2210
 beamY = 1186
-feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x))
+feed_width = 4024 if dev_mode else int(cothread.catools.caget(pv.oav_max_x))
 display_width = 600 if dev_mode else 2012  # 2012
 display_height = 240 if dev_mode else 1528  # 1518
 camera_pixel_size = 1.85  # Alvium1240M
@@ -187,7 +191,17 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
-            # print(f"lRBVThreadComplete {str(datetime.now())}")
+
+class RBVThreadDev(QtCore.QThread):
+    rbvUpdate = QtCore.pyqtSignal(str, object)
+
+    def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        tasks = asyncio.gather(get_rbvs.monitor_gonio(), get_rbvs.monitor_robot())
+        loop.run_until_complete(tasks)
+        loop.close()
+        
 
 
 class LaserStatusThread(QtCore.QThread):
@@ -337,8 +351,8 @@ class MainWindow(QtWidgets.QMainWindow):
         def go_to_max():
             bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
         
-        def gonio_zero_all():
-            bac.create_and_start_task(Task(name="go_to_zero"))
+        # def gonio_zero_all():
+        #     bac.create_and_start_task(Task(name="go_to_zero"))
 
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: set_omega_velocity(15))
         self.ui.buttonFastOmegaTurn.clicked.connect(lambda: set_omega_velocity(40))
@@ -352,7 +366,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.minus5.clicked.connect(lambda: gonio_rotate(-5))
         self.ui.plus5.clicked.connect(lambda: gonio_rotate(5))
         self.ui.zero.clicked.connect(lambda: gonio_rotate(0))
-        self.ui.zeroAll.clicked.connect(gonio_zero_all())
+        #self.ui.zeroAll.clicked.connect(gonio_zero_all())
         # jog buttons
         self.ui.up.clicked.connect(lambda: jog_sample("up"))
         self.ui.down.clicked.connect(lambda: jog_sample("down"))
