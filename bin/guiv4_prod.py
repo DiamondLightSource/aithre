@@ -556,7 +556,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 pv.oav_arr_ecb,
                 pv.oav_stat_ecb,
                 pv.oav_proc_ecb,
-                pv.oav_over_ecb,
                 pv.oav_fimg_ecb,
                 pv.oav_tiff_ecb,
                 pv.oav_hdf5_ecb,
@@ -565,6 +564,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 ca.caput(callback, "Disable")
             ca.caput(pv.oav_mjpg_maxw, 4024)
             ca.caput(pv.oav_mjpg_maxh, 3036)
+                # pv.oav_over_ecb <--- to stop callbacks on the overlay, but we use this now.
 
     def oavStart(self):
         ca.caput(pv.oav_acquire, "Acquire")
