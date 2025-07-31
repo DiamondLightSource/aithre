@@ -493,7 +493,7 @@ class MainWindow(QtWidgets.QMainWindow):
             z_curr = float(ca.caget(pv.gonio_z_rbv))
             omega = float(ca.caget(pv.omega_rbv))
             print("Clicked", x, y)
-            Xmove = x_curr - ((x - self.xcent) * (calibrate / self.zoomclickcal))
+            Xmove = x_curr + ((x - self.xcent) * (calibrate / self.zoomclickcal))
             Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
             Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
             print("Moving", Xmove, Ymove, Zmove)
@@ -505,7 +505,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.redrawPoints()
         else:
             pass
-        
+
     def redrawPoints(self):
         if self.image is not None:
             painter = QtGui.QPainter(self.image)
