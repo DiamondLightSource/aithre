@@ -36,8 +36,8 @@ LASERENDPOINT = "http://172.23.17.123:20010"
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
-beamX = 1670
-beamY = 1182
+beamX = 1640
+beamY = 1228
 feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x)) # reason for keeping full res is to save high def images
 display_width = 600 if dev_mode else 2012  # 2012 - emit at half res as too big for display
 display_height = 240 if dev_mode else 1528  # 1518
@@ -264,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.drawn_points = []
         self.rtc6 = cut_shapes.CutShapes()
         self.rtc6.connect_to_rtc()
-        
+
 
         # menus
         self.ui.actionExit.triggered.connect(self.quit)
@@ -537,8 +537,9 @@ class MainWindow(QtWidgets.QMainWindow):
             with open(filename, 'w') as file:
                 for point in points_list:
                     file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
-            self.points_list = points_list * self.ui.spinBoxRepetitions.value()
-            print(points_list)
+            self.points_list = points_list * self.ui.spinBoxRepetitions.value() + ([(0, 0, False)])
+            self.rtc6.cut_polygon_from_gui(self.points_list)
+            print(self.points_list)
         else:
             print("No shapes to cut...")
 
