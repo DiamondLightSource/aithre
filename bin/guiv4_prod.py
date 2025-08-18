@@ -38,11 +38,11 @@ line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
 beamX = 1670
 beamY = 1182
-feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x))
-display_width = 600 if dev_mode else 2012  # 2012
+feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x)) # reason for keeping full res is to save high def images
+display_width = 600 if dev_mode else 2012  # 2012 - emit at half res as too big for display
 display_height = 240 if dev_mode else 1528  # 1518
 camera_pixel_size = 1.85  # Alvium1240M
-feed_display_ratio = feed_width / display_width
+feed_display_ratio = feed_width / display_width # should be 2
 calibrate = (
     camera_pixel_size / feed_display_ratio
 ) / 1000  # play around with the end number to find correct
