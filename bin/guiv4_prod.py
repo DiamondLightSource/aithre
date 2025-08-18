@@ -79,14 +79,14 @@ class OAVThread(QtCore.QThread):
                     (beamX - 20, beamY),  # bigness
                     (beamX + 20, beamY),
                     (0, 255, 0),  # color
-                    3,  # thickness
+                    2,  # thickness
                 )
                 cv.line(
                     frame,
                     (beamX, beamY - 20),
                     (beamX, beamY + 20),
                     (0, 255, 0),
-                    3,
+                    2,
                 )
 
                 if self.zoomLevel != 1:
