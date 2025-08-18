@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
 import pv
-#from rtc6_fastcs import cut_shapes
+from rtc6_fastcs import cut_shapes
 import math
 import numpy as np
 import time
@@ -262,7 +262,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
-        #self.rtc6 = rtc6_fastcs.cut_shapes.CutShapes()
+        self.rtc6 = cut_shapes.CutShapes()
+        self.rtc6.connect_to_rtc()
+        
 
         # menus
         self.ui.actionExit.triggered.connect(self.quit)
@@ -509,7 +511,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def redrawPoints(self):
         if self.image is not None:
             painter = QtGui.QPainter(self.image)
-            painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0), 5))
+            painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0), 2))
             if len(self.drawn_points) < 2:
                 for point in self.drawn_points:
                     painter.drawPoint(point)
@@ -524,8 +526,8 @@ class MainWindow(QtWidgets.QMainWindow):
         now = datetime.now()
         filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
         for i, point in enumerate(self.drawn_points):
-            correctedX = round((point.x() * calibrate), 4)
-            correctedY = round((point.y() * calibrate), 4)
+            correctedX = -((beamX / feed_display_ratio) - point.x()) * camera_pixel_size
+            correctedY = ((beamY / feed_display_ratio) - point.y()) * camera_pixel_size 
             if i == 0:
                 points_list.append((correctedX, correctedY, False))
             else:
