@@ -30,11 +30,15 @@ if dev_mode:
     print("Running in development mode...")
 
 if args.bluesky:
-    from mx_bluesky import RunEngine
-    import mx_bluesky.beamlines.aithre_lasershaping
-    from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
-    from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
-    print("Using Bluesky...")
+    try:
+        from mx_bluesky import RunEngine
+        import mx_bluesky.beamlines.aithre_lasershaping
+        from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
+        from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
+    except ImportError as e:
+        print("Failed to import mx_bluesky module. Ensure it is installed and accessible.")
+        print(f"ImportError: {e}")
+        sys.exit(1)
 else:
     print("Using dirty caput/get...")
 
