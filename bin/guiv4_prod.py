@@ -29,7 +29,8 @@ dev_mode = args.dev
 if dev_mode:
     print("Running in development mode...")
 
-if args.bluesky:
+bluesky_mode = args.bluesky
+if bluesky_mode:
     try:
         from mx_bluesky import RunEngine
         import mx_bluesky.beamlines.aithre_lasershaping
