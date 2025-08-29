@@ -51,9 +51,14 @@ client = client
 
 # separate thread for OAV
 class OAVThread(QtCore.QThread):
+    """Thread to handle OAV streaming and processing.
+    Emits a signal with the updated QImage for display.
+    """
     ImageUpdate = QtCore.pyqtSignal(QtGui.QImage)
 
     def __init__(self):
+        """Initializes the OAVThread with default parameters.
+        """
         super(OAVThread, self).__init__()
         self.ThreadActive = False
         self.zoomLevel = 1
@@ -64,6 +69,10 @@ class OAVThread(QtCore.QThread):
         self.line_color = line_color
 
     def run(self):
+        """Main loop for capturing and processing OAV frames.
+        Captures frames from the OAV stream, overlays grid lines and beam position,
+        applies zoom if necessary, and emits the processed frame as a QImage.
+        """
         self.ThreadActive = True
         self.cap = cv.VideoCapture(OAVADDRESS)
         while self.ThreadActive:
@@ -125,6 +134,17 @@ class OAVThread(QtCore.QThread):
                 self.ImageUpdate.emit(p)
 
     def adjust_roi_boundaries(self, start, end, max_value, window_size):
+        """Adjusts the ROI boundaries to ensure they stay within valid limits.
+
+        Args:
+            start (int): Starting coordinate of the ROI.
+            end (int): Ending coordinate of the ROI.
+            max_value (int): Maximum allowable value for the coordinate.
+            window_size (int): Target size of the ROI, h or w
+
+        Returns:
+            int, int: Adjusted start and end coordinates.
+        """
         if start < 0:
             end -= start
             start = 0
@@ -136,9 +156,16 @@ class OAVThread(QtCore.QThread):
         return start, end
 
     def setZoomLevel(self, zoomLevel):
+        """Handler to update the zoom level.
+
+        Args:
+            zoomLevel (int): New zoom level to set.
+        """
         self.zoomLevel = zoomLevel
 
     def stop(self):
+        """Stops the OAV thread and releases resources.
+        """
         self.ThreadActive = False
         self.cap.release()
 
