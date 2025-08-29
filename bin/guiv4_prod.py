@@ -310,9 +310,13 @@ class LaserStatusThread(QtCore.QThread):
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """Main application window for the Aithre GUI.
+    """
     zoomChanged = QtCore.pyqtSignal(int)
 
     def __init__(self):
+        """Initializes the MainWindow with UI components and connects signals to slots.
+        """
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -400,6 +404,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.laserStatusThread.start()
 
     def updateLaserStatus(self, status_dict):
+        """Updates the laser status indicators in the UI based on the provided status dictionary.
+
+        Args:
+            status_dict (dict): A dictionary containing laser status information.
+        """
         if status_dict["IsOutputEnabled"] == "true":
             self.ui.labOUTPUT.setStyleSheet("background-color: green")
         else:
@@ -421,12 +430,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.labLaserStatus.setText(status_dict["ActualStateName"])
 
     def closeEvent(self, event):
+        """Handles the close event for the main window.
+
+        Args:
+            event (QCloseEvent): The close event.
+        """
         self.laserStatusThread.stop()
         self.laserStatusThread.quit()
         self.laserStatusThread.wait()
         event.accept()
 
     def commandLaser(self, command):
+        """Sends a command to the laser control system.
+
+        Args:
+            command (str): The command to send to the laser. Options include "Enable", "Disable",
+                           "SetDivider", "SetAttenuator", "Startup", and "Standby".
+        """
         laser = lc.carbide(endpoint=LASERENDPOINT)
         if command == "Enable":
             laser.changeOutput(state="enable")
@@ -460,6 +480,8 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.robot_proc_dry, 1)
 
     def quit(self):
+        """Quits the application gracefully.
+        """
         sys.exit()
 
     def returntozero(self):
@@ -467,6 +489,11 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
+        """Handles the zoom level change from the slider.
+        
+        Args:
+            zoomValue (int): The new zoom level from the slider.
+        """
         self.zoomLevel = zoomValue
         self.ui.currentZoom.setText(str(self.zoomLevel))
         self.zoomChanged.emit(self.zoomLevel)
@@ -519,6 +546,11 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.omega, gonio_request)
 
     def toggleCanvasMode(self, mode):
+        """Toggles the canvas mode between 'move' and 'draw'.
+
+        Args:
+            mode (str): The mode to set, either 'move' or 'draw'.
+        """
         if mode == "move":
             self.canvasMode = "move"
         elif mode == "draw":
@@ -527,6 +559,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.canvasMode = "move"
 
     def onMouse(self, event):
+        """Handles mouse click events on the OAV stream for moving the stage or drawing points.
+
+        Args:
+            event (QMouseEvent): The mouse event containing position information.
+        """
         if self.canvasMode == "move":
             self.zoomclickcal = int(self.ui.sliderZoom.value())
             if self.zoomclickcal == 1:
@@ -559,6 +596,8 @@ class MainWindow(QtWidgets.QMainWindow):
             pass
 
     def redrawPoints(self):
+        """Redraws the drawn points on the current image and updates the display.
+        """
         if self.image is not None:
             painter = QtGui.QPainter(self.image)
             painter.setPen(QtGui.QPen(QtGui.QColor(255, 0, 0), 2))
@@ -572,6 +611,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(self.image))
 
     def savePoints(self):
+        """Saves the drawn points to a file and sends them to the RTC6 for cutting.
+        """
         points_list = []
         now = datetime.now()
         filename = now.strftime("%Y%m%d_%H%M%S_points.txt")
@@ -595,6 +636,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
                     
     def setupOAV(self):
+        """Sets up the OAV camera parameters and disables unnecessary callbacks if not in development mode.
+        """
         if not dev_mode:
             for callback in (
                 pv.oav_roi_ecb,
@@ -611,17 +654,29 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.oav_mjpg_maxh, 3036)
 
     def oavStart(self):
+        """Starts the OAV acquisition by setting the appropriate EPICS PV.
+        """
         ca.caput(pv.oav_acquire, "Acquire")
 
     def oavStop(self):
+        """Stops the OAV acquisition by setting the appropriate EPICS PV.
+        """
         ca.caput(pv.oav_acquire, "Done")
 
     def setImage(self, image):
+        """Sets the current image to be displayed in the OAV stream.
+
+        Args:
+            image (QImage): The QImage to display.
+        """
         self.image = image
         self.redrawPoints()
         self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(image))
 
     def saveSnapshot(self):
+        """Saves the current OAV image as a JPEG file.
+        Prompts the user for a file name and saves the image using OpenCV.
+        """
         image = self.image
         print(f"Q image format: {image.format()}")
         print(f"Q image bytes: {image.byteCount()}")
