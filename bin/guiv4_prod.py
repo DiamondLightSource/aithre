@@ -518,38 +518,54 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
 
     def jogSample(self, direction):
-        if direction == "right":
-            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
-        elif direction == "left":
-            ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
-        elif direction == "up":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-        elif direction == "down":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
-            )
-        elif direction == "ZPlus":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
-        elif direction == "ZMinus":
-            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
+        if bluesky_mode:
+            if direction == "right":
+                goniometer_controls.jog_sample({"RIGHT": 0.005})
+            elif direction == "left":
+                goniometer_controls.jog_sample({"LEFT": -0.005})
+            elif direction == "up":
+                goniometer_controls.jog_sample({"UP": 0.005})
+            elif direction == "down":
+                goniometer_controls.jog_sample({"DOWN": 0.005})
+            elif direction == "ZPlus":
+                goniometer_controls.jog_sample({"ZPLUS": 0.05})
+            elif direction == "ZMinus":
+                goniometer_controls.jog_sample({"ZMINUS": -0.05})
+            else:
+                pass
         else:
-            pass
+            if direction == "right":
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
+            elif direction == "left":
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
+            elif direction == "up":
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                )
+            elif direction == "down":
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                )
+            elif direction == "ZPlus":
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+            elif direction == "ZMinus":
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
+            else:
+                pass
 
     def goTopm3600(self):
         gonio_current = float(ca.caget(pv.omega_rbv))
