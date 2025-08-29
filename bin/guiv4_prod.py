@@ -22,11 +22,21 @@ from blueapi import client
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
+parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
 args = parser.parse_args()
 
 dev_mode = args.dev
 if dev_mode:
     print("Running in development mode...")
+
+if args.bluesky:
+    from mx_bluesky import RunEngine
+    import mx_bluesky.beamlines.aithre_lasershaping
+    from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
+    from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
+    print("Using Bluesky...")
+else:
+    print("Using dirty caput/get...")
 
 version = "4.2.6"
 print(f"Aithre - Version {version}")
