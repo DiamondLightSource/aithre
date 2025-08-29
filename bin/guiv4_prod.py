@@ -500,8 +500,11 @@ class MainWindow(QtWidgets.QMainWindow):
         sys.exit()
 
     def returntozero(self):
-        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
-            ca.caput(motor, 0)
+        if bluesky_mode:
+            beamline_safe.go_to_zero()
+        else:
+            for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
+                ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
         """Handles the zoom level change from the slider.
