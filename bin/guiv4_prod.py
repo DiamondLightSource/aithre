@@ -11,8 +11,6 @@ import time
 import os
 from guiv4_2_6beta import Ui_MainWindow
 from datetime import datetime
-import zmq
-import pickle
 import asyncio
 import laserControl as lc
 import httpx
@@ -36,6 +34,7 @@ if bluesky_mode:
         import mx_bluesky.beamlines.aithre_lasershaping
         from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
         from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
+        from dodal.devices.aithre_lasershaping import goniometer
     except ImportError as e:
         print("Failed to import mx_bluesky module. Ensure it is installed and accessible.")
         print(f"ImportError: {e}")
@@ -478,11 +477,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def loadNextPin(self):
-        ca.caput(pv.robot_reset, 1)
-        time.sleep(3)
-        ca.caput(pv.robot_next_pin, int(self.ui.spinToLoad.value()))
-        time.sleep(3)
-        ca.caput(pv.robot_proc_load, 1)
+        if bluesky_mode:
+            goniometer.omega.stop()
+        else:
+            ca.caput(pv.robot_reset, 1)
+            time.sleep(3)
+            ca.caput(pv.robot_next_pin, int(self.ui.spinToLoad.value()))
+            time.sleep(3)
+            ca.caput(pv.robot_proc_load, 1)
 
     def unloadPin(self):
         ca.caput(pv.robot_reset, 1)
