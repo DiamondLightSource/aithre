@@ -389,8 +389,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.down.clicked.connect(lambda: self.jogSample("down"))
         self.ui.left.clicked.connect(lambda: self.jogSample("left"))
         self.ui.right.clicked.connect(lambda: self.jogSample("right"))
-        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
-        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
+        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("z_minus"))
+        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("z_plus"))
         # exposure and gain sliders
         self.ui.sliderExposure.valueChanged.connect(self.changeExposureGain)
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
@@ -519,20 +519,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def jogSample(self, direction):
         if bluesky_mode:
-            if direction == "right":
-                goniometer_controls.jog_sample({"RIGHT": 0.005})
-            elif direction == "left":
-                goniometer_controls.jog_sample({"LEFT": -0.005})
-            elif direction == "up":
-                goniometer_controls.jog_sample({"UP": 0.005})
-            elif direction == "down":
-                goniometer_controls.jog_sample({"DOWN": 0.005})
-            elif direction == "ZPlus":
-                goniometer_controls.jog_sample({"ZPLUS": 0.05})
-            elif direction == "ZMinus":
-                goniometer_controls.jog_sample({"ZMINUS": -0.05})
-            else:
-                pass
+            goniometer_controls.jog_sample({direction: 0.005})
         else:
             if direction == "right":
                 ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
