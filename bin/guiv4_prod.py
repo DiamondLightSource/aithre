@@ -46,7 +46,7 @@ else:
 version = "4.2.6"
 print(f"Aithre - Version {version}")
 OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
-LASERENDPOINT = "http://172.23.17.123:20010"
+LASERENDPOINT = "http://172.23.17.123:20010" # this is going to change soon!
 # Set grid/beam position/scale.
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
