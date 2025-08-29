@@ -172,9 +172,14 @@ class OAVThread(QtCore.QThread):
 
 # separate thread to run caget for RBVs
 class RBVThread(QtCore.QThread):
+    """Thread to periodically fetch and emit readback values (RBVs) from EPICS PVs.
+    Emits a signal with a list of RBV values.
+    """
     rbvUpdate = QtCore.pyqtSignal(list)
 
     def run(self):
+        """Main loop for fetching RBVs.
+        Periodically fetches RBV values from predefined PVs and emits them."""
         while not dev_mode:
             time.sleep(1)
             allRBVsList = []
@@ -196,13 +201,16 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
-            # print(f"lRBVThreadComplete {str(datetime.now())}")
 
 
 class LaserStatusThread(QtCore.QThread):
+    """Thread to periodically fetch and emit laser status from a REST API.
+    """
     statusUpdate = QtCore.pyqtSignal(dict)
 
     def __init__(self):
+        """Initializes the LaserStatusThread with default parameters.
+        """
         super().__init__()
         self.endpoint = LASERENDPOINT
         self.interval = 500
@@ -217,6 +225,11 @@ class LaserStatusThread(QtCore.QThread):
         }
 
     async def fetchStatus(self):
+        """Fetches the status from all defined endpoints asynchronously.
+
+        Returns:
+            dict: A dictionary with endpoint names as keys and their corresponding fetched values.
+        """
         async with httpx.AsyncClient(timeout=10.0) as client:
             tasks = []
             for name, url in self.endpoints.items():
@@ -225,6 +238,16 @@ class LaserStatusThread(QtCore.QThread):
             return dict(results)
 
     async def fetchEndpoint(self, client, name, url):
+        """Fetches the status from a single endpoint.
+
+        Args:
+            client (httpx.AsyncClient): The HTTP client to use for the request.
+            name (str): Name of the endpoint.
+            url (str): URL of the endpoint.
+
+        Returns:
+            tuple: A tuple containing the endpoint name and its fetched value or error message.
+        """
         try:
             response = await client.get(url)
             if response.status_code == 200:
@@ -234,6 +257,9 @@ class LaserStatusThread(QtCore.QThread):
             return (name, f"Error: {str(e)}")
 
     def run(self):
+        """Main loop for fetching laser status.
+        Periodically fetches laser status from the REST API and emits it.
+        """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -246,6 +272,8 @@ class LaserStatusThread(QtCore.QThread):
             QtCore.QThread.msleep(self.interval)
 
     def stop(self):
+        """Stops the LaserStatusThread.
+        """
         self._is_running = False
 
 
