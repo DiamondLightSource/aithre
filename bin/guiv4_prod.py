@@ -262,8 +262,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
-        self.rtc6 = cut_shapes.CutShapes()
-        self.rtc6.connect_to_rtc()
+        if not dev_mode:
+            self.rtc6 = cut_shapes.CutShapes()
+            self.rtc6.connect_to_rtc()
+        else:
+            self.rtc6 = None
 
 
         # menus
@@ -294,13 +297,6 @@ class MainWindow(QtWidgets.QMainWindow):
         RBVth = RBVThread()
         RBVth.rbvUpdate.connect(self.updateRBVs)
         RBVth.start()
-        # robot active thread
-        # th3 = robotCheckThread()
-        # th3.robotUpdate.connect(self.setRobotActiveStatus)
-        # th3.start()
-        # th4 = beamlineSafeThread()
-        # th4.beamlineSafe.connect(self.beamlineSafeStatus)
-        # th4.start()
         # gonio rotation buttons
         self.ui.buttonSlowOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 15))
         self.ui.buttonFastOmegaTurn.clicked.connect(lambda: ca.caput(pv.omega_velo, 40))
@@ -330,7 +326,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.load.clicked.connect(self.loadNextPin)
         self.ui.unload.clicked.connect(self.unloadPin)
         self.ui.dry.clicked.connect(self.dryGripper)
-        # zoom_level = self.ui.sliderZoom.value()
         # laser buttons
         self.ui.pushButtonDisableLaser.clicked.connect(lambda: self.commandLaser("Disable"))
         self.ui.pushButtonEnableLaser.clicked.connect(lambda: self.commandLaser("Enable"))
@@ -542,14 +537,6 @@ class MainWindow(QtWidgets.QMainWindow):
             print(self.points_list)
         else:
             print("No shapes to cut...")
-
-    # def cutShapes(self):
-    #     cut = cut_shapes.CutShapes()
-    #     cut.connect_to_rtc()
-    #     cut.cut_polygon_from_gui(self.points_list)
-
-        #scanhead = rtc6_fastcs.cut_shapes.CutShapes()
-
         
                     
     def setupOAV(self):
@@ -567,7 +554,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 ca.caput(callback, "Disable")
             ca.caput(pv.oav_mjpg_maxw, 4024)
             ca.caput(pv.oav_mjpg_maxh, 3036)
-                # pv.oav_over_ecb <--- to stop callbacks on the overlay, but we use this now.
 
     def oavStart(self):
         ca.caput(pv.oav_acquire, "Acquire")
@@ -648,30 +634,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
         else:
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: red")
-
-    # def setRobotActiveStatus(self, robotUpdateList):
-    #     if str(robotUpdateList[0]) == "No":
-    #         self.ui.indicatorRobotActive.setStyleSheet("background-color: red")
-    #     else:
-    #         self.ui.indicatorRobotActive.setStyleSheet("background-color: green")
-            # ca.caput(
-            #     pv.gonio_y,
-            #     (float(ca.caget(pv.gonio_y_rbv)))
-            #     - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )
-            # ca.caput(
-            #     pv.gonio_z,
-            #     (float(ca.caget(pv.gonio_z_rbv)))
-            #     - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            # )lf, beamlineSafeList):
-    #     if str(beamlineSafeList[0]) == "Yes":
-    #         ca.caput(pv.robot_ip16_force_option, "On")
-    #         self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
-    #     elif str(beamlineSafeList[0]) == "No":
-    #         ca.caput(pv.robot_ip16_force_option, "No")
-    #         self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
-    #     else:
-    #         pass
 
     def autoCenter(self):
         cap = cv.VideoCapture(
