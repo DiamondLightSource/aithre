@@ -30,8 +30,6 @@ if dev_mode:
 bluesky_mode = args.bluesky
 if bluesky_mode:
     try:
-        from mx_bluesky import RunEngine
-        import mx_bluesky.beamlines.aithre_lasershaping
         from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
         from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
         from dodal.devices.aithre_lasershaping import goniometer
@@ -289,38 +287,6 @@ class LaserStatusThread(QtCore.QThread):
         """Stops the LaserStatusThread.
         """
         self._is_running = False
-
-
-# class robotCheckThread(QtCore.QThread):
-#     robotUpdate = QtCore.pyqtSignal(list)
-
-#     def run(self):
-#         while True:
-#             time.sleep(1)
-#             robotUpdateList = []
-#             robotUpdateList += [str(ca.caget(pv.robot_prog_running))]
-#             self.robotUpdate.emit(robotUpdateList)
-
-
-# class beamlineSafeThread(QtCore.QThread):
-#     beamlineSafe = QtCore.pyqtSignal(list)
-
-#     def run(self):
-#         self.ThreadActive = True
-#         while self.ThreadActive:
-#             safeUpdateList = []
-#             safeUpdateList += [str(ca.caget(pv.stage_x_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.gonio_y_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.gonio_z_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.omega_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.stage_z_rbv))]
-#             safeUpdateList += [str(ca.caget(pv.stage_y_rbv))]
-#             blsafe = all(round(float(safeUpdateList[x]), 3) == 0.00 for x in [0, 1, 2, 3, 4, 5])
-#             if blsafe:
-#                 safeUpdateList = ["Yes"]
-#             else:
-#                 safeUpdateList = ["No"]
-#             self.beamlineSafe.emit(safeUpdateList)
 
 
 class MainWindow(QtWidgets.QMainWindow):
