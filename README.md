@@ -13,9 +13,13 @@ pip install ../path/to/rtc6-fastcs
 If it doesn't launch the GUI, need to uninstall and reinstall pyqt5 and opencv in specific order. 
 
 pip uninstall opencv-python opencv-python-headless
+
 pip uninstall PyQt5 PyQt5-sip
+
 pip install --upgrade pip
+
 pip install opencv-python-headless
+
 pip install PyQt5
 
 
