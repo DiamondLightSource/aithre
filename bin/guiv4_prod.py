@@ -16,12 +16,33 @@ import laserControl as lc
 import httpx
 import argparse
 from qasync import QEventLoop
-from blueapi import client
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
+parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
 args = parser.parse_args()
+
+if args.blueapi:
+    from blueapi.client.client import BlueapiClient
+    from blueapi.client.rest import BlueapiRestClient
+    from blueapi.cli.format import OutputFormat
+    from blueapi.worker import Task
+    from blueapi.config import ConfigLoader, ApplicationConfig
+    from pathlib import Path
+
+    bac = BlueapiClient(BlueapiRestClient())
+    plans = bac.get_plans()
+    OutputFormat.COMPACT.display(plans)
+
+    config_loader = ConfigLoader(ApplicationConfig)
+    config_file = Path("/dls/science/groups/i23/aithre/config.yaml")
+
+    while not config_file.is_file():
+        print("Error: Config file not found")
+        config_file = input("Please enter config filepath:\n")
+
+    config_loader.use_values_from_yaml(config_file)
 
 dev_mode = args.dev
 if dev_mode:
@@ -32,7 +53,11 @@ if bluesky_mode:
     try:
         from mx_bluesky.beamlines.aithre_lasershaping import goniometer_controls
         from mx_bluesky.beamlines.aithre_lasershaping import beamline_safe
+        from mx_bluesky.beamlines.aithre_lasershaping.pin_tip_centring import aithre_pin_tip_centre
         from dodal.devices.aithre_lasershaping import goniometer
+        from bluesky.run_engine import RunEngine
+        from dodal.beamlines import aithre
+        from ophyd_async.core import init_devices
     except ImportError as e:
         print("Failed to import mx_bluesky module. Ensure it is installed and accessible.")
         print(f"ImportError: {e}")
@@ -59,7 +84,7 @@ calibrate = (
     camera_pixel_size / feed_display_ratio
 ) / 1000  # play around with the end number to find correct
 
-client = client
+#client = client
 
 # separate thread for OAV
 class OAVThread(QtCore.QThread):
@@ -444,6 +469,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def loadNextPin(self):
         if bluesky_mode:
+            with init_devices():
+                gonio = aithre.goniometer()
+                robot = aithre.robot()
+
+            RE = RunEngine({})
             goniometer.omega.stop()
         else:
             ca.caput(pv.robot_reset, 1)
@@ -488,9 +518,20 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.oav_cam_acqtime, (self.ui.sliderExposure.value() / 100))
         ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
 
-    def jogSample(self, direction):
+    def go_to_max():
+        bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
+    def jogSample(self, direction, amount=0.005):
+
+        if args.blueapi:
+            bac.create_and_start_task(Task(
+                name="jog_sample",
+                params={"direction": direction, "increment_size": amount},
+            ))
         if bluesky_mode:
-            goniometer_controls.jog_sample({direction: 0.005})
+            with init_devices():
+                gonio = aithre.goniometer()
+            RE = RunEngine({})
+            RE(goniometer_controls.jog_sample(direction=direction, increment_size=amount, goniometer=gonio))
         else:
             if direction == "right":
                 ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
@@ -614,9 +655,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 points_list.append((correctedX, correctedY, True))
         
         if points_list:
-            with open(filename, 'w') as file:
-                for point in points_list:
-                    file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
+            # with open(filename, 'w') as file:
+            #     for point in points_list:
+            #         file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
             self.points_list = points_list * self.ui.spinBoxRepetitions.value() + ([(0, 0, False)])
             self.rtc6.cut_polygon_from_gui(self.points_list)
             print(self.points_list)
@@ -636,7 +677,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pv.oav_fimg_ecb,
                 pv.oav_tiff_ecb,
                 pv.oav_hdf5_ecb,
-                pv.oav_pva_ecb,
+                #pv.oav_pva_ecb,
             ):
                 ca.caput(callback, "Disable")
             ca.caput(pv.oav_mjpg_maxw, 4024)
@@ -699,13 +740,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 print(f"An error occurred while saving the image: {e}")
 
     def gonioRotate(self, amount):
-        gonio_current = float(ca.caget(pv.omega_rbv))
-        if amount == 0:
-            gonio_request = 0
+        if args.blueapi:
+            bac.create_and_start_task(
+                Task(name="rotate_gonio_relative", params={"value": amount})
+            )
         else:
-            gonio_request = gonio_current + amount
-        print("Moving gonio omega to", str(gonio_request))
-        ca.caput(pv.omega, gonio_request)
+            gonio_current = float(ca.caget(pv.omega_rbv))
+            if amount == 0:
+                gonio_request = 0
+            else:
+                gonio_request = gonio_current + amount
+            print("Moving gonio omega to", str(gonio_request))
+            ca.caput(pv.omega, gonio_request)
 
     def updateRBVs(self, rbvs):
         # stagez, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagex, stagey
@@ -735,6 +781,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: red")
 
     def autoCenter(self):
+        from dodal.devices.oav.pin_image_recognition import PinTipDetection
+        with init_devices():
+            gonio = aithre.goniometer()
+            oav = aithre.oav()
+            p_t_d = PinTipDetection("LA18L-DI-OAV-01:", "pin_detect")
+
+        RE = RunEngine({})
+        RE(aithre_pin_tip_centre(gonio=gonio, oav=oav, pin_tip_detection=p_t_d, tip_offset_microns=0))
+    
         return None
 
 
