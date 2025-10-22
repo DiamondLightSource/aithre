@@ -34,10 +34,13 @@ class ca:
                 pass
         return val
 
-    def caput(pv, new_val):
+    def caput(pv, new_val, force=False):
         check = Popen(["cainfo", pv], stdout=PIPE, stderr=PIPE)
         check_stdout, check_stderr = check.communicate()
-        if check_stdout.split()[11].decode("ascii") == "DBF_CHAR":
+        if force:
+            a = Popen(["caput", pv, str(new_val)], stdout=PIPE, stderr=PIPE)
+            a_stdout, a_stderr = a.communicate()
+        elif check_stdout.split()[11].decode("ascii") == "DBF_CHAR":
             a = Popen(["caput", "-S", pv, str(new_val)], stdout=PIPE, stderr=PIPE)
             a_stdout, a_stderr = a.communicate()
         else:
