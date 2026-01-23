@@ -1,6 +1,3 @@
-#!/dls/science/groups/i23/pyenvs/aithreconda/bin/python
-
-# C Orr 2022
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
@@ -21,8 +18,8 @@ version = "4.2.5"
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
-beamX = 2218
-beamY = 1182
+beamX = 1646
+beamY = 1238
 feed_width = int(ca.caget(pv.oav_max_x))
 display_width = 2012
 display_height = 1518
@@ -155,9 +152,9 @@ class RBVThread(QtCore.QThread):
             ):  # need to work out what this pv returns
                 allRBVsList += "\u2714"
             elif ca.caget(pv.robot_pin_mounted) is False:
-                allRBVsList += "\u274C"
+                allRBVsList += "\u274c"
             else:
-                allRBVsList += "\u003F"
+                allRBVsList += "\u003f"
             allRBVsList += [str(ca.caget(pv.stage_z_rbv))]
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
@@ -262,38 +259,45 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
         self.ui.zeroAll.clicked.connect(self.returntozero)
         # robot buttons
-        self.ui.resetRobot.clicked.connect(lambda: ca.caput(pv.robot_reset, 1))
+        self.ui.resetRobot.clicked.connect(lambda: ca.caput(pv.robot_reset, 1, True))
         self.ui.load.clicked.connect(self.loadNextPin)
         self.ui.unload.clicked.connect(self.unloadPin)
         self.ui.dry.clicked.connect(self.dryGripper)
+        self.ui.goHomeRobot.clicked.connect(self.homeRobot)
+        # initial
         zoom_level = self.ui.sliderZoom.value()
 
     def loadNextPin(self):
-        ca.caput(pv.robot_reset, 1)
-        time.sleep(3)
-        ca.caput(pv.robot_next_pin, int(self.ui.spinToLoad.value()))
-        time.sleep(3)
-        ca.caput(pv.robot_proc_load, 1)
+        ca.caput(pv.robot_reset, 1, True)
+        time.sleep(1)
+        ca.caput(pv.robot_next_pin, int(self.ui.spinToLoad.value()), True)
+        time.sleep(1)
+        ca.caput(pv.robot_proc_load, 1, True)
 
     def unloadPin(self):
-        ca.caput(pv.robot_reset, 1)
-        time.sleep(3)
-        ca.caput(pv.robot_proc_unload, 1)
+        ca.caput(pv.robot_reset, 1, True)
+        time.sleep(1)
+        ca.caput(pv.robot_proc_unload, 1, True)
 
     def dryGripper(self):
-        ca.caput(pv.robot_reset, 1)
-        time.sleep(3)
-        ca.caput(pv.robot_proc_dry, 1)
+        ca.caput(pv.robot_reset, 1, True)
+        time.sleep(1)
+        ca.caput(pv.robot_proc_dry, 1, True)
+
+    def homeRobot(self):
+        ca.caput(pv.robot_reset, 1, True)
+        time.sleep(1)
+        ca.caput(pv.robot_proc_gotohome, 1, True)
 
     def quit(self):
         sys.exit()
 
     def returntozero(self):
-        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
+        for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega, pv.stage_z]:
             ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
-        self.zoomLevel = zoomValue
+        self.zoomLevel = zoomValue  # * 2
         self.ui.currentZoom.setText(str(self.zoomLevel))
         self.zoomChanged.emit(self.zoomLevel)
 
@@ -328,28 +332,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 (float(ca.caget(pv.gonio_z_rbv)))
                 - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
             )
-        elif direction == "out":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
         elif direction == "in":
-            ca.caput(
-                pv.gonio_y,
-                (float(ca.caget(pv.gonio_y_rbv)))
-                + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
-            ca.caput(
-                pv.gonio_z,
-                (float(ca.caget(pv.gonio_z_rbv)))
-                + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.05,
-            )
+            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+        elif direction == "out":
+            ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
         else:
             pass
 
@@ -364,24 +350,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # moving sample to beam centre when clicked
     def onMouse(self, event):
+        self.zoomclickcal = int(self.ui.sliderZoom.value())  # * 2
+        if self.zoomclickcal == 1:
+            self.xcent = beamX
+            self.ycent = beamY
+        else:
+            self.xcent = 2012
+            self.ycent = 1518
         x = event.pos().x()
         x = x * feed_display_ratio
         y = event.pos().y()
         y = y * feed_display_ratio
         x_curr = float(ca.caget(pv.stage_x_rbv))
-        print(x_curr)
+        # print(x_curr)
         y_curr = float(ca.caget(pv.gonio_y_rbv))
         z_curr = float(ca.caget(pv.gonio_z_rbv))
         omega = float(ca.caget(pv.omega_rbv))
         print("Clicked", x, y)
-        Xmove = x_curr - ((x - beamX) * calibrate)
-        print((x - beamX))
-        Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - beamY) * calibrate))
-        Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - beamY) * calibrate))
+        Xmove = x_curr + ((x - self.xcent) * (calibrate / self.zoomclickcal))
+        Ymove = y_curr + (
+            math.sin(math.radians(omega))
+            * ((y - self.ycent) * (calibrate / self.zoomclickcal))
+        )
+        Zmove = z_curr + (
+            math.cos(math.radians(omega))
+            * ((y - self.ycent) * (calibrate / self.zoomclickcal))
+        )
         print("Moving", Xmove, Ymove, Zmove)
-        ca.caput(pv.stage_x, Xmove)
-        ca.caput(pv.gonio_y, Ymove)
-        ca.caput(pv.gonio_z, Zmove)
+        ca.caput(pv.stage_x, round(Xmove, 4))
+        ca.caput(pv.gonio_y, round(Ymove, 4))
+        ca.caput(pv.gonio_z, round(Zmove, 4))
 
     def setupOAV(self):
         for callback in (
@@ -389,15 +387,14 @@ class MainWindow(QtWidgets.QMainWindow):
             pv.oav_arr_ecb,
             pv.oav_stat_ecb,
             pv.oav_proc_ecb,
-            pv.oav_over_ecb,
             pv.oav_fimg_ecb,
             pv.oav_tiff_ecb,
             pv.oav_hdf5_ecb,
-            pv.oav_pva_ecb,
         ):
             ca.caput(callback, "Disable")
         ca.caput(pv.oav_mjpg_maxw, 4024)
         ca.caput(pv.oav_mjpg_maxh, 3036)
+        # pv.oav_over_ecb,
 
     def oavStart(self):
         ca.caput(pv.oav_acquire, "Acquire")
@@ -466,12 +463,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.exposure_rbv.setText(str(round(float(rbvs[4]), 3)))
         self.ui.gain_rbv.setText(str(int(rbvs[5])))
         self.ui.currentSamp.setText(str(rbvs[6]))
-        blsafe = all(round(float(rbvs[x]), 3) == 0.00 for x in [0, 1, 2, 3, 8, 9])
+        blsafe = all(
+            round(float(rbvs[x]), 3) == 0.0 for x in [0, 1, 2, 8, 9]
+        )  # doesnt care is omega is not zero
         if blsafe:
             ca.caput(pv.robot_ip16_force_option, "On")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: green")
         else:
-            # ca.caput(pv.robot_ip16_force_option, "No")
+            ca.caput(pv.robot_ip16_force_option, "No")
             self.ui.indicatorBeamlineSafe.setStyleSheet("background-color: red")
         if ca.caget(pv.robot_pin_mounted) == "Yes":
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: green")
