@@ -856,3 +856,12 @@ if __name__ == "__main__":
     with loop:
         loop.run_forever()
     sys.exit(app.exec_())
+
+
+## TO DO:
+# connect omega rotation +/- to jog value spin box
+# connect rtc6 speed box to actual rtc6 control
+# make load preset load a file from the shape_protocols dir
+# make preset shapes: show what is loaded.
+# work out why RTC6 is always acquired.
+# change rtc6-fastcs to take the file from shape_protocols rather than translating. this will be faster for multi passes.
