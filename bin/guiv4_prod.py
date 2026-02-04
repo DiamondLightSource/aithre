@@ -9,7 +9,7 @@ import math
 import numpy as np
 import time
 import os
-from guiv4_2_6beta import Ui_MainWindow
+from gui_4_3_0 import Ui_MainWindow
 from datetime import datetime
 import asyncio
 import laserControl as lc
@@ -65,7 +65,7 @@ if bluesky_mode:
 else:
     print("Using dirty caput/get...")
 
-version = "4.2.6"
+version = "4.3.0"
 print(f"Aithre - Version {version}")
 OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
 LASERENDPOINT = "http://172.23.171.207:20010" # this is going to change soon!
