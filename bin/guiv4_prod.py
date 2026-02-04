@@ -68,13 +68,13 @@ else:
 version = "4.2.6"
 print(f"Aithre - Version {version}")
 OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
-LASERENDPOINT = "http://172.23.17.123:20010" # this is going to change soon!
+LASERENDPOINT = "http://172.23.171.207:20010" # this is going to change soon!
 # Set grid/beam position/scale.
 line_width = 2
 line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
-beamX = 1640
-beamY = 1228
+beamX = 1644
+beamY = 1232
 feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x)) # reason for keeping full res is to save high def images
 display_width = 600 if dev_mode else 2012  # 2012 - emit at half res as too big for display
 display_height = 240 if dev_mode else 1528  # 1518
@@ -329,6 +329,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not dev_mode:
             self.rtc6 = cut_shapes.CutShapes()
             self.rtc6.connect_to_rtc()
+            pass
         else:
             self.rtc6 = None
 
@@ -379,8 +380,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.down.clicked.connect(lambda: self.jogSample("down"))
         self.ui.left.clicked.connect(lambda: self.jogSample("left"))
         self.ui.right.clicked.connect(lambda: self.jogSample("right"))
-        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("z_minus"))
-        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("z_plus"))
+        self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
+        self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
         # exposure and gain sliders
         self.ui.sliderExposure.valueChanged.connect(self.changeExposureGain)
         self.ui.sliderGain.valueChanged.connect(self.changeExposureGain)
@@ -499,7 +500,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def returntozero(self):
         if bluesky_mode:
-            beamline_safe.go_to_zero()
+            print("Bluesky - go to zero")
+            beamline_safe.go_to_zero(wait=False)
         else:
             for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
                 ca.caput(motor, 0)
