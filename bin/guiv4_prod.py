@@ -17,6 +17,9 @@ import httpx
 import argparse
 from qasync import QEventLoop
 
+import warnings
+warnings.filterwarnings("ignore", message="sipPyTypeDict.*")
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
@@ -328,7 +331,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.drawn_points = []
         if not dev_mode:
             self.rtc6 = cut_shapes.CutShapes()
-            self.rtc6.connect_to_rtc()
+            self.rtc6Control("acquire")
+            self.rtc6Control("check")
             pass
         else:
             self.rtc6 = None
@@ -380,6 +384,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.down.clicked.connect(lambda: self.jogSample("down"))
         self.ui.left.clicked.connect(lambda: self.jogSample("left"))
         self.ui.right.clicked.connect(lambda: self.jogSample("right"))
+        self.ui.pushButtonZsMinus.clicked.connect(lambda: self.jogSample("ZsMinus"))
+        self.ui.pushButtonZsPlus.clicked.connect(lambda: self.jogSample("ZsPlus"))
+        self.ui.pushButtonZsZero.clicked.connect(lambda: self.jogSample("ZsZero"))
         self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
         self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
         # exposure and gain sliders
@@ -445,6 +452,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.laserStatusThread.quit()
         self.laserStatusThread.wait()
         event.accept()
+
+    def rtc6Control(self, command):
+        if command == "acquire":
+            self.rtc6.connect_to_rtc()
+        if command == "check":
+            if ca.caget(pv.rtc6eth_info_is_acquired) == "True":
+                self.ui.labRTC6Acquired.setStyleSheet("background-color: green")
+            elif ca.caget(pv.rtc6eth_info_is_acquired) == "False":
+                self.ui.labRTC6Acquired.setStyleSheet("background-color: red")
+            else:
+                pass
 
     def commandLaser(self, command):
         """Sends a command to the laser control system.
@@ -524,6 +542,15 @@ class MainWindow(QtWidgets.QMainWindow):
         bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
     def jogSample(self, direction, amount=0.005):
 
+        if direction == "ZsPlus" or "ZsMinus" or "ZsZero":
+            jogVal = float(self.ui.spinBoxZsJogAmount.value() / 1000)
+            if direction == "ZsPlus":
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + jogVal))
+            elif direction == "ZsMinus":
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - jogVal))
+            elif direction == "ZsZero":
+                ca.caput(pv.stage_z, float(0))
+
         if args.blueapi:
             bac.create_and_start_task(Task(
                 name="jog_sample",
@@ -534,37 +561,61 @@ class MainWindow(QtWidgets.QMainWindow):
                 gonio = aithre.goniometer()
             RE = RunEngine({})
             RE(goniometer_controls.jog_sample(direction=direction, increment_size=amount, goniometer=gonio))
+
         else:
+            jogVal = float(self.ui.spinBoxZJogAmount.value() / 1000)
             if direction == "right":
-                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + jogVal))
             elif direction == "left":
-                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - jogVal))
             elif direction == "up":
                 ca.caput(
                     pv.gonio_y,
                     (float(ca.caget(pv.gonio_y_rbv)))
-                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
                 ca.caput(
                     pv.gonio_z,
                     (float(ca.caget(pv.gonio_z_rbv)))
-                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
             elif direction == "down":
                 ca.caput(
                     pv.gonio_y,
                     (float(ca.caget(pv.gonio_y_rbv)))
-                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
                 ca.caput(
                     pv.gonio_z,
                     (float(ca.caget(pv.gonio_z_rbv)))
-                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
             elif direction == "ZPlus":
-                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
             elif direction == "ZMinus":
-                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+            # elif direction == "ZPlus":
+            #     ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+            # elif direction == "ZMinus":
+            #     ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
             else:
                 pass
 
@@ -756,10 +807,11 @@ class MainWindow(QtWidgets.QMainWindow):
             ca.caput(pv.omega, gonio_request)
 
     def updateRBVs(self, rbvs):
-        # stagez, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagex, stagey
-        self.ui.stagez_rbv.setText(
+        # stagex, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagez, stagey
+        self.ui.stagex_rbv.setText(
             str(round(float(rbvs[0]), 3))
-        )  # used to be x now is z
+        )  # x and z may be confused
+        self.ui.stagez_rbv.setText(str(round(float(rbvs[8]), 3)))
         self.ui.gony_rbv.setText(str(round(float(rbvs[1]), 3)))
         self.ui.gonz_rbv.setText(str(round(float(rbvs[2]), 3)))
         # stop -0.0 to 0.0 jitter on GUI
