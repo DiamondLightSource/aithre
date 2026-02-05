@@ -1,10 +1,20 @@
 #!.venv/bin/python
 import sys
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
+parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
+parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
+parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
+args = parser.parse_args()
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
 import pv
-from rtc6_fastcs import cut_shapes
+if not args.nortc6:
+    from rtc6_fastcs import cut_shapes
 import math
 import numpy as np
 import time
@@ -14,7 +24,6 @@ from datetime import datetime
 import asyncio
 import laserControl as lc
 import httpx
-import argparse
 from qasync import QEventLoop
 
 import warnings
@@ -24,6 +33,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
 parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
+parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
 args = parser.parse_args()
 
 if args.blueapi:
@@ -329,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
-        if not dev_mode:
+        if not dev_mode and not args.nortc6:
             self.rtc6 = cut_shapes.CutShapes()
             self.rtc6Control("acquire")
             self.rtc6Control("check")
@@ -708,12 +718,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 points_list.append((correctedX, correctedY, True))
         
         if points_list:
-            # with open(filename, 'w') as file:
-            #     for point in points_list:
-            #         file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
             self.points_list = points_list * self.ui.spinBoxRepetitions.value() + ([(0, 0, False)])
-            self.rtc6.cut_polygon_from_gui(self.points_list)
-            print(self.points_list)
+            if not args.nortc6:
+                self.rtc6.cut_polygon_from_gui(self.points_list)
+                print(self.points_list)
+            else:
+                print("Running in no RTC6 mode, but here are the points that would have been cut:")
+                print(self.points_list)
         else:
             print("No shapes to cut...")
         
