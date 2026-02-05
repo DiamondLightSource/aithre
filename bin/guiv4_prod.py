@@ -27,6 +27,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('httpcore').setLevel(logging.WARNING)
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
 from control import ca
