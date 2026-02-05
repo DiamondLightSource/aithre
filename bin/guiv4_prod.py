@@ -447,6 +447,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pushButtonClear.clicked.connect(lambda: self.drawn_points.clear())
         self.ui.pushButtonCut.clicked.connect(self.savePoints)
         self.ui.pushButtonLoadPreset.clicked.connect(self.loadPresetShape)
+        # RTC6 speed control
+        self.ui.comboBoxSpeed.currentTextChanged.connect(self.setRTC6Speed)
 
         if not dev_mode:
             logger.info("Starting LaserStatusThread")
@@ -807,6 +809,28 @@ class MainWindow(QtWidgets.QMainWindow):
             logger.info(f"Preset shape file loaded: {file_name}")
         else:
             logger.debug("File selection cancelled")
+    
+    def setRTC6Speed(self, speed_text):
+        """Sets the RTC6 mark speed based on the comboBox selection.
+        
+        Args:
+            speed_text (str): The text from the comboBox (e.g., "0.005 m/s" or "Default")
+            This is converted from m/s to bits at fastcs level.
+        """
+        if speed_text == "Default" or not speed_text:
+            logger.debug("RTC6 speed: Default selected, no caput performed")
+            return
+        
+        if speed_text.endswith(" m/s"):
+            speed_value = speed_text[:-len(" m/s")]
+            try:
+                speed_float = float(speed_value)
+                logger.info(f"RTC6: Setting mark speed to {speed_float} m/s")
+                ca.caput(pv.rtc6eth_control_markspeed, speed_float)
+            except ValueError:
+                logger.error(f"RTC6: Invalid speed value '{speed_value}'")
+        else:
+            logger.warning(f"RTC6: Unexpected speed format '{speed_text}'")
         
                     
     def setupOAV(self):
@@ -957,6 +981,5 @@ if __name__ == "__main__":
 
 
 ## TO DO:
-# connect rtc6 speed box to actual rtc6 control
 # work out why RTC6 is always acquired.
 # change rtc6-fastcs to take the file from shape_protocols rather than translating. this will be faster for multi passes.
