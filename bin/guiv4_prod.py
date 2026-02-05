@@ -446,6 +446,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.radioButtonDrawMode.toggled.connect(lambda: self.toggleCanvasMode("draw"))
         self.ui.pushButtonClear.clicked.connect(lambda: self.drawn_points.clear())
         self.ui.pushButtonCut.clicked.connect(self.savePoints)
+        self.ui.pushButtonLoadPreset.clicked.connect(self.loadPresetShape)
 
         if not dev_mode:
             logger.info("Starting LaserStatusThread")
@@ -783,6 +784,30 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             logger.warning("No shapes to cut...")
         
+    def loadPresetShape(self):
+        """Opens a file dialog to load a preset shape file and displays the filename.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self.ui.centralwidget,
+            "Select Preset Shape File",
+            "/dls/science/groups/i23/aithre/rtc6-fastcs/shape_protocols/",
+            "Text Files (*.txt);;All Files (*)",
+            options=options,
+        )
+        
+        if file_name:
+            display_name = os.path.basename(file_name)
+            display_name = os.path.splitext(display_name)[0]
+            if display_name.startswith("RTCExecutionlist_"):
+                display_name = display_name[len("RTCExecutionlist_"):]
+            self.ui.labPresetShapeFile.setText(display_name)
+            self.preset_file_path = file_name
+            logger.info(f"Preset shape file loaded: {file_name}")
+        else:
+            logger.debug("File selection cancelled")
+        
                     
     def setupOAV(self):
         """Sets up the OAV camera parameters and disables unnecessary callbacks if not in development mode.
@@ -933,7 +958,5 @@ if __name__ == "__main__":
 
 ## TO DO:
 # connect rtc6 speed box to actual rtc6 control
-# make load preset load a file from the shape_protocols dir
-# make preset shapes: show what is loaded.
 # work out why RTC6 is always acquired.
 # change rtc6-fastcs to take the file from shape_protocols rather than translating. this will be faster for multi passes.
