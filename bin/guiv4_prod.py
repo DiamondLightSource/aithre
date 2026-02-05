@@ -570,6 +570,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def quit(self):
         """Quits the application gracefully.
         """
+        logger.info("Aithre shutting down... Bye!")
         sys.exit()
 
     def returntozero(self):
