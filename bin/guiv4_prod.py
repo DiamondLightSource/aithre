@@ -376,8 +376,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.plus90.clicked.connect(lambda: self.gonioRotate(90))
         self.ui.minus15.clicked.connect(lambda: self.gonioRotate(-15))
         self.ui.plus15.clicked.connect(lambda: self.gonioRotate(15))
-        self.ui.minus5.clicked.connect(lambda: self.gonioRotate(-5))
-        self.ui.plus5.clicked.connect(lambda: self.gonioRotate(5))
+        self.ui.minus5.clicked.connect(lambda: self.gonioRotate(-float(self.ui.doubleSpinBoxOmegaJog.value())))
+        self.ui.plus5.clicked.connect(lambda: self.gonioRotate(float(self.ui.doubleSpinBoxOmegaJog.value())))
         self.ui.zero.clicked.connect(lambda: self.gonioRotate(0))
         # jog buttons
         self.ui.up.clicked.connect(lambda: self.jogSample("up"))
@@ -859,7 +859,6 @@ if __name__ == "__main__":
 
 
 ## TO DO:
-# connect omega rotation +/- to jog value spin box
 # connect rtc6 speed box to actual rtc6 control
 # make load preset load a file from the shape_protocols dir
 # make preset shapes: show what is loaded.
