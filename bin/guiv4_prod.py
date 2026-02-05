@@ -18,7 +18,7 @@ os.makedirs(log_dir, exist_ok=True)
 log_filename = datetime.now().strftime('%d%m%Y.log')
 log_filepath = os.path.join(log_dir, log_filename)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler(log_filepath, mode='a'),
@@ -581,7 +581,8 @@ class MainWindow(QtWidgets.QMainWindow):
             logger.info("Bluesky - go to zero")
             beamline_safe.go_to_zero(wait=False)
         else:
-            for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
+            logger.info("Moving all motors to zero")
+            for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.stage_z, pv.omega]:
                 ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
