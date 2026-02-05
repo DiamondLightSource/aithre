@@ -61,6 +61,9 @@ dev_mode = args.dev
 if dev_mode:
     print("Running in development mode...")
 
+if args.nortc6:
+    print("Running without RTC6 board acquisition")
+
 bluesky_mode = args.bluesky
 if bluesky_mode:
     try:
