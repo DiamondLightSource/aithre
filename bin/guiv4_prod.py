@@ -136,8 +136,12 @@ class OAVThread(QtCore.QThread):
 class RBVThread(QtCore.QThread):
     rbvUpdate = QtCore.pyqtSignal(list)
 
+    def __init__(self):
+        super(RBVThread, self).__init__()
+        self.ThreadActive = True
+
     def run(self):
-        while True:
+        while self.ThreadActive:
             time.sleep(1)
             allRBVsList = []
             allRBVsList += [str(ca.caget(pv.stage_x_rbv))]
@@ -159,6 +163,9 @@ class RBVThread(QtCore.QThread):
             allRBVsList += [str(ca.caget(pv.stage_y_rbv))]
             self.rbvUpdate.emit(allRBVsList)
             # print(f"lRBVThreadComplete {str(datetime.now())}")
+
+    def stop(self):
+        self.ThreadActive = False
 
 
 # class robotCheckThread(QtCore.QThread):
@@ -224,9 +231,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.snapshot.clicked.connect(self.saveSnapshot)
         self.ui.AutoCenter.clicked.connect(self.autoCenter)
         # RBV updating connections thread
-        th2 = RBVThread()
-        th2.rbvUpdate.connect(self.updateRBVs)
-        th2.start()
+        self.th2 = RBVThread()
+        self.th2.rbvUpdate.connect(self.updateRBVs)
+        self.th2.start()
         # robot active thread
         # th3 = robotCheckThread()
         # th3.robotUpdate.connect(self.setRobotActiveStatus)
@@ -290,7 +297,14 @@ class MainWindow(QtWidgets.QMainWindow):
         ca.caput(pv.robot_proc_gotohome, 1, True)
 
     def quit(self):
-        sys.exit()
+        self.close()
+
+    def closeEvent(self, event):
+        self.th.stop()
+        self.th2.stop()
+        self.th.wait()
+        self.th2.wait()
+        event.accept()
 
     def returntozero(self):
         for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega, pv.stage_z]:
