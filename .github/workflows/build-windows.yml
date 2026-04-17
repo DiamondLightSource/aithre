@@ -20,6 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip -r requirements-windows.txt
+        run: python -m pip install pyinstaller pillow
 
       - name: Build EXE
         run: pyinstaller --clean --noconfirm aithre.spec
