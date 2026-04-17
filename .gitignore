@@ -16,3 +16,4 @@ aithre.egg-info/
 .python-version
 uv.lock
 logs*
+*.log

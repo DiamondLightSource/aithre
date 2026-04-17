@@ -3,6 +3,7 @@ import sys
 import argparse
 import logging
 import os
+import platform
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
@@ -11,6 +12,9 @@ parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput
 parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
 parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
 args = parser.parse_args()
+
+if platform.system() == "Windows":
+    args.nortc6 = True
 
 # Setup logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
@@ -30,6 +34,9 @@ logger = logging.getLogger(__name__)
 
 logging.getLogger('httpx').setLevel(logging.WARNING)
 logging.getLogger('httpcore').setLevel(logging.WARNING)
+
+if platform.system() == "Windows":
+    logger.info("Windows detected — forcing --nortc6 (RTC6 unsupported on Windows)")
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2 as cv
