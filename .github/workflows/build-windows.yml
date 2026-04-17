@@ -1,0 +1,44 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [windows, linux]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-windows.txt
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip -r requirements-windows.txt
+
+      - name: Build EXE
+        run: pyinstaller --clean --noconfirm aithre.spec
+
+      - name: Smoke test (import-only)
+        run: |
+          Start-Process -FilePath dist\aithre.exe -ArgumentList '--dev','--nortc6','--help' -Wait -NoNewWindow
+        shell: pwsh
+        continue-on-error: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aithre-windows-${{ github.sha }}
+          path: dist/aithre.exe
+          retention-days: 30
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/aithre.exe

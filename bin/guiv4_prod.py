@@ -11,7 +11,16 @@ parser.add_argument("--dev", help="Development mode for running the GUI outside 
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
 parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
 parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
+parser.add_argument("--beampos", help="Override beam position, format: X,Y (e.g. --beampos 1644,1232)", type=str, default=None)
 args = parser.parse_args()
+
+beampos_override = None
+if args.beampos is not None:
+    try:
+        _bx, _by = args.beampos.split(",")
+        beampos_override = (int(_bx), int(_by))
+    except ValueError:
+        parser.error("--beampos must be in the form X,Y with integer values (e.g. --beampos 1644,1232)")
 
 if platform.system() == "Windows":
     args.nortc6 = True
@@ -39,6 +48,34 @@ if platform.system() == "Windows":
     logger.info("Windows detected — forcing --nortc6 (RTC6 unsupported on Windows)")
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+def _resolve_asset(path):
+    if not isinstance(path, str) or not path:
+        return path
+    if os.path.isabs(path) and os.path.exists(path):
+        return path
+    bases = [
+        getattr(sys, '_MEIPASS', None),
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        os.getcwd(),
+    ]
+    for base in bases:
+        if not base:
+            continue
+        candidate = os.path.normpath(os.path.join(base, path))
+        if os.path.exists(candidate):
+            return os.path.abspath(candidate)
+    return path
+
+_OriginalQPixmap = QtGui.QPixmap
+class _AssetQPixmap(_OriginalQPixmap):
+    def __init__(self, *a, **kw):
+        if a and isinstance(a[0], str):
+            a = (_resolve_asset(a[0]),) + a[1:]
+        super().__init__(*a, **kw)
+QtGui.QPixmap = _AssetQPixmap
+
 import cv2 as cv
 from control import ca
 import pv
@@ -47,7 +84,6 @@ if not args.nortc6:
 import math
 import numpy as np
 import time
-import os
 from gui_4_3_0 import Ui_MainWindow
 import asyncio
 import laserControl as lc
@@ -112,6 +148,9 @@ line_spacing = 115  # depends on pixel size, 60 for MANTA507B
 line_color = (140, 140, 140)  # greyness
 beamX = 1644
 beamY = 1232
+if beampos_override is not None:
+    beamX, beamY = beampos_override
+    logger.info(f"Beam position overridden via --beampos: beamX={beamX}, beamY={beamY}")
 feed_width = 4024 if dev_mode else int(ca.caget(pv.oav_max_x)) # reason for keeping full res is to save high def images
 display_width = 600 if dev_mode else 2012  # 2012 - emit at half res as too big for display
 display_height = 240 if dev_mode else 1528  # 1518

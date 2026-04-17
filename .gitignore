@@ -10,6 +10,9 @@ bin/__pycache__/
 .DS_Store
 captures/
 .venv
+.venv-win/
+build/
+dist/
 *.pyc
 *_points.txt
 aithre.egg-info/

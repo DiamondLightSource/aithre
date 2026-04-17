@@ -1,0 +1,7 @@
+pyqt5
+opencv-python-headless
+numpy
+requests
+httpx
+qasync
+pyinstaller
