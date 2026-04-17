@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
 parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
-parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
+parser.add_argument("--rtc6", help="Acquire the RTC6 board. Off by default; not supported on Windows.", action="store_true")
 parser.add_argument("--beampos", help="Override beam position, format: X,Y (e.g. --beampos 1644,1232)", type=str, default=None)
 args = parser.parse_args()
 
@@ -23,7 +23,7 @@ if args.beampos is not None:
         parser.error("--beampos must be in the form X,Y with integer values (e.g. --beampos 1644,1232)")
 
 if platform.system() == "Windows":
-    args.nortc6 = True
+    args.rtc6 = False
 
 # Setup logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
@@ -45,7 +45,7 @@ logging.getLogger('httpx').setLevel(logging.WARNING)
 logging.getLogger('httpcore').setLevel(logging.WARNING)
 
 if platform.system() == "Windows":
-    logger.info("Windows detected — forcing --nortc6 (RTC6 unsupported on Windows)")
+    logger.info("Windows detected — disabling RTC6 (unsupported on Windows)")
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -79,7 +79,7 @@ QtGui.QPixmap = _AssetQPixmap
 import cv2 as cv
 from control import ca
 import pv
-if not args.nortc6:
+if args.rtc6:
     from rtc6_fastcs import cut_shapes
 import math
 import numpy as np
@@ -118,7 +118,7 @@ dev_mode = args.dev
 if dev_mode:
     logger.info("Running in development mode...")
 
-if args.nortc6:
+if not args.rtc6:
     logger.info("Running without RTC6 board acquisition")
 
 bluesky_mode = args.bluesky
@@ -408,14 +408,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
-        if not dev_mode and not args.nortc6:
+        if not dev_mode and args.rtc6:
             logger.info("Acquiring RTC6 board")
             self.rtc6 = cut_shapes.CutShapes()
             self.rtc6Control("acquire")
             self.rtc6Control("check")
             pass
         else:
-            logger.info("RTC6 board not acquired (dev mode or --nortc6 flag)")
+            logger.info("RTC6 board not acquired (dev mode or --rtc6 flag not set)")
             self.rtc6 = None
 
 
@@ -825,7 +825,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         if points_list:
             self.points_list = points_list * self.ui.spinBoxRepetitions.value() + ([(0, 0, False)])
-            if not args.nortc6:
+            if args.rtc6:
                 self.rtc6.cut_polygon_from_gui(self.points_list)
                 logger.info(f"Cutting polygon: {self.points_list}")
             else:
