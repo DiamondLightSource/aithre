@@ -1,4 +1,4 @@
-#!.venv/bin/python
+#!/dls/science/groups/i23/aithre/aithre/.venv/bin/python
 import sys
 import argparse
 import logging
@@ -14,6 +14,7 @@ args = parser.parse_args()
 
 # Setup logging
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
+log_dir = os.getcwd()
 os.makedirs(log_dir, exist_ok=True)
 log_filename = datetime.now().strftime('%d%m%Y.log')
 log_filepath = os.path.join(log_dir, log_filename)
@@ -763,7 +764,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.oav_stream.setPixmap(QtGui.QPixmap.fromImage(self.image))
 
     def savePoints(self):
-        """Saves the drawn points to a file and sends them to the RTC6 for cutting.
+        """Sends drawn points to the RTC6 for cutting.
         """
         points_list = []
         now = datetime.now()
