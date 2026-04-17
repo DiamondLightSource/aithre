@@ -1,27 +1,53 @@
 #!.venv/bin/python
 import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
-import cv2 as cv
-from control import ca
-import pv
-from rtc6_fastcs import cut_shapes
-import math
-import numpy as np
-import time
-import os
-from guiv4_2_6beta import Ui_MainWindow
-from datetime import datetime
-import asyncio
-import laserControl as lc
-import httpx
 import argparse
-from qasync import QEventLoop
+import logging
+import os
+from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dev", help="Development mode for running the GUI outside the lab.", action="store_true")
 parser.add_argument("--bluesky", help="Use Bluesky client instead of messy caput/get.", action="store_true")
 parser.add_argument("--blueapi", help="Option to use blueapi client instead/aswell as bluesky directly.", action="store_true")
+parser.add_argument("--nortc6", help="Do not try to acquire the RTC6 board, useful if using Windows vendor software", action="store_true")
 args = parser.parse_args()
+
+# Setup logging
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs')
+os.makedirs(log_dir, exist_ok=True)
+log_filename = datetime.now().strftime('%d%m%Y.log')
+log_filepath = os.path.join(log_dir, log_filename)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filepath, mode='a'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('httpcore').setLevel(logging.WARNING)
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+import cv2 as cv
+from control import ca
+import pv
+if not args.nortc6:
+    from rtc6_fastcs import cut_shapes
+import math
+import numpy as np
+import time
+import os
+from gui_4_3_0 import Ui_MainWindow
+import asyncio
+import laserControl as lc
+import httpx
+from qasync import QEventLoop
+
+import warnings
+warnings.filterwarnings("ignore", message="sipPyTypeDict.*")
 
 if args.blueapi:
     from blueapi.client.client import BlueapiClient
@@ -39,14 +65,17 @@ if args.blueapi:
     config_file = Path("/dls/science/groups/i23/aithre/config.yaml")
 
     while not config_file.is_file():
-        print("Error: Config file not found")
+        logger.error("Config file not found")
         config_file = input("Please enter config filepath:\n")
 
     config_loader.use_values_from_yaml(config_file)
 
 dev_mode = args.dev
 if dev_mode:
-    print("Running in development mode...")
+    logger.info("Running in development mode...")
+
+if args.nortc6:
+    logger.info("Running without RTC6 board acquisition")
 
 bluesky_mode = args.bluesky
 if bluesky_mode:
@@ -59,14 +88,14 @@ if bluesky_mode:
         from dodal.beamlines import aithre
         from ophyd_async.core import init_devices
     except ImportError as e:
-        print("Failed to import mx_bluesky module. Ensure it is installed and accessible.")
-        print(f"ImportError: {e}")
+        logger.error("Failed to import mx_bluesky module. Ensure it is installed and accessible.")
+        logger.error(f"ImportError: {e}")
         sys.exit(1)
 else:
-    print("Using dirty caput/get...")
+    logger.info("Using dirty caput/get...")
 
-version = "4.2.6"
-print(f"Aithre - Version {version}")
+version = "4.3.0"
+logger.info(f"Aithre - Version {version}")
 OAVADDRESS = "http://bl23i-ea-serv-01.diamond.ac.uk:8080/OAV.mjpg.mjpg"
 LASERENDPOINT = "http://172.23.171.207:20010" # this is going to change soon!
 # Set grid/beam position/scale.
@@ -110,6 +139,7 @@ class OAVThread(QtCore.QThread):
         Captures frames from the OAV stream, overlays grid lines and beam position,
         applies zoom if necessary, and emits the processed frame as a QImage.
         """
+        logger.info("OAVThread started")
         self.ThreadActive = True
         self.cap = cv.VideoCapture(OAVADDRESS)
         while self.ThreadActive:
@@ -203,6 +233,7 @@ class OAVThread(QtCore.QThread):
     def stop(self):
         """Stops the OAV thread and releases resources.
         """
+        logger.info("Stopping OAVThread")
         self.ThreadActive = False
         self.cap.release()
 
@@ -217,6 +248,7 @@ class RBVThread(QtCore.QThread):
     def run(self):
         """Main loop for fetching RBVs.
         Periodically fetches RBV values from predefined PVs and emits them."""
+        logger.info("RBVThread started")
         while not dev_mode:
             time.sleep(1)
             allRBVsList = []
@@ -297,6 +329,7 @@ class LaserStatusThread(QtCore.QThread):
         """Main loop for fetching laser status.
         Periodically fetches laser status from the REST API and emits it.
         """
+        logger.info("LaserStatusThread started")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -305,12 +338,13 @@ class LaserStatusThread(QtCore.QThread):
                 status_dict = loop.run_until_complete(self.fetchStatus())
                 self.statusUpdate.emit(status_dict)
             except Exception as e:
-                print(f"Error fetching status: {str(e)}")
+                logger.error(f"Error fetching status: {str(e)}")
             QtCore.QThread.msleep(self.interval)
 
     def stop(self):
         """Stops the LaserStatusThread.
         """
+        logger.info("Stopping LaserStatusThread")
         self._is_running = False
 
 
@@ -322,15 +356,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         """Initializes the MainWindow with UI components and connects signals to slots.
         """
+        logger.info("Initializing MainWindow")
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.drawn_points = []
-        if not dev_mode:
+        if not dev_mode and not args.nortc6:
+            logger.info("Acquiring RTC6 board")
             self.rtc6 = cut_shapes.CutShapes()
-            self.rtc6.connect_to_rtc()
+            self.rtc6Control("acquire")
+            self.rtc6Control("check")
             pass
         else:
+            logger.info("RTC6 board not acquired (dev mode or --nortc6 flag)")
             self.rtc6 = None
 
 
@@ -348,6 +386,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # OAV connections thread
         self.zoomLevel = 1
         self.setupOAV()
+        logger.info("Starting OAVThread")
         self.OAVth = OAVThread()
         self.OAVth.ImageUpdate.connect(self.setImage)
         self.OAVth.start()
@@ -359,6 +398,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.snapshot.clicked.connect(self.saveSnapshot)
         self.ui.AutoCenter.clicked.connect(self.autoCenter)
         # RBV updating connections thread
+        logger.info("Starting RBVThread")
         RBVth = RBVThread()
         RBVth.rbvUpdate.connect(self.updateRBVs)
         RBVth.start()
@@ -372,14 +412,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.plus90.clicked.connect(lambda: self.gonioRotate(90))
         self.ui.minus15.clicked.connect(lambda: self.gonioRotate(-15))
         self.ui.plus15.clicked.connect(lambda: self.gonioRotate(15))
-        self.ui.minus5.clicked.connect(lambda: self.gonioRotate(-5))
-        self.ui.plus5.clicked.connect(lambda: self.gonioRotate(5))
+        self.ui.minus5.clicked.connect(lambda: self.gonioRotate(-float(self.ui.doubleSpinBoxOmegaJog.value())))
+        self.ui.plus5.clicked.connect(lambda: self.gonioRotate(float(self.ui.doubleSpinBoxOmegaJog.value())))
         self.ui.zero.clicked.connect(lambda: self.gonioRotate(0))
         # jog buttons
         self.ui.up.clicked.connect(lambda: self.jogSample("up"))
         self.ui.down.clicked.connect(lambda: self.jogSample("down"))
         self.ui.left.clicked.connect(lambda: self.jogSample("left"))
         self.ui.right.clicked.connect(lambda: self.jogSample("right"))
+        self.ui.pushButtonZsMinus.clicked.connect(lambda: self.jogSample("ZsMinus"))
+        self.ui.pushButtonZsPlus.clicked.connect(lambda: self.jogSample("ZsPlus"))
+        self.ui.pushButtonZsZero.clicked.connect(lambda: self.jogSample("ZsZero"))
         self.ui.pushButtonZMinus.clicked.connect(lambda: self.jogSample("ZMinus"))
         self.ui.pushButtonZPlus.clicked.connect(lambda: self.jogSample("ZPlus"))
         # exposure and gain sliders
@@ -403,8 +446,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.radioButtonDrawMode.toggled.connect(lambda: self.toggleCanvasMode("draw"))
         self.ui.pushButtonClear.clicked.connect(lambda: self.drawn_points.clear())
         self.ui.pushButtonCut.clicked.connect(self.savePoints)
+        self.ui.pushButtonLoadPreset.clicked.connect(self.loadPresetShape)
+        # RTC6 speed control
+        self.ui.comboBoxSpeed.currentTextChanged.connect(self.setRTC6Speed)
 
         if not dev_mode:
+            logger.info("Starting LaserStatusThread")
             self.laserStatusThread = LaserStatusThread()
             self.laserStatusThread.statusUpdate.connect(self.updateLaserStatus)
             self.laserStatusThread.start()
@@ -441,10 +488,26 @@ class MainWindow(QtWidgets.QMainWindow):
         Args:
             event (QCloseEvent): The close event.
         """
+        logger.info("MainWindow closing, stopping threads...")
         self.laserStatusThread.stop()
         self.laserStatusThread.quit()
         self.laserStatusThread.wait()
+        logger.info("All threads stopped, application closing")
         event.accept()
+
+    def rtc6Control(self, command):
+        if command == "acquire":
+            logger.info("RTC6: Connecting to RTC6 board")
+            self.rtc6.connect_to_rtc()
+        if command == "check":
+            is_acquired = ca.caget(pv.rtc6eth_info_is_acquired)
+            logger.info(f"RTC6: Board acquisition status - {is_acquired}")
+            if is_acquired == "True":
+                self.ui.labRTC6Acquired.setStyleSheet("background-color: green")
+            elif is_acquired == "False":
+                self.ui.labRTC6Acquired.setStyleSheet("background-color: red")
+            else:
+                pass
 
     def commandLaser(self, command):
         """Sends a command to the laser control system.
@@ -453,22 +516,33 @@ class MainWindow(QtWidgets.QMainWindow):
             command (str): The command to send to the laser. Options include "Enable", "Disable",
                            "SetDivider", "SetAttenuator", "Startup", and "Standby".
         """
+        logger.info(f"Laser: Sending command '{command}'")
         laser = lc.carbide(endpoint=LASERENDPOINT)
         if command == "Enable":
+            logger.info("Laser: Enabling output")
             laser.changeOutput(state="enable")
         elif command == "Disable":
+            logger.info("Laser: Disabling output")
             laser.changeOutput(state="close")
         elif command == "SetDivider":
-            laser.setPpDivider(divider=int(self.ui.spinBoxDivider.value()))
+            divider = int(self.ui.spinBoxDivider.value())
+            logger.info(f"Laser: Setting divider to {divider}")
+            laser.setPpDivider(divider=divider)
         elif command == "SetAttenuator":
-            laser.setAttenuatorPercentage(percentage=float(self.ui.doubleSpinBoxAttenuator.value()))
+            percentage = float(self.ui.doubleSpinBoxAttenuator.value())
+            logger.info(f"Laser: Setting attenuator to {percentage}%")
+            laser.setAttenuatorPercentage(percentage=percentage)
         elif command == "Startup":
+            logger.info("Laser: Startup")
             laser.selectAndApplyPreset(preset="5")
         elif command == "Standby":
+            logger.info("Laser: Standby")
             laser.goToStandby()
 
 
     def loadNextPin(self):
+        pin_number = int(self.ui.spinToLoad.value())
+        logger.info(f"Robot: Loading pin {pin_number}")
         if bluesky_mode:
             with init_devices():
                 gonio = aithre.goniometer()
@@ -479,16 +553,19 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             ca.caput(pv.robot_reset, 1)
             time.sleep(3)
-            ca.caput(pv.robot_next_pin, int(self.ui.spinToLoad.value()))
+            ca.caput(pv.robot_next_pin, pin_number)
             time.sleep(3)
             ca.caput(pv.robot_proc_load, 1)
+            logger.info(f"Robot: Load command sent for pin {pin_number}")
 
     def unloadPin(self):
+        logger.info("Robot: Unloading pin")
         ca.caput(pv.robot_reset, 1)
         time.sleep(3)
         ca.caput(pv.robot_proc_unload, 1)
 
     def dryGripper(self):
+        logger.info("Robot: Drying gripper")
         ca.caput(pv.robot_reset, 1)
         time.sleep(3)
         ca.caput(pv.robot_proc_dry, 1)
@@ -496,14 +573,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def quit(self):
         """Quits the application gracefully.
         """
+        logger.info("Aithre shutting down... Bye!")
         sys.exit()
 
     def returntozero(self):
         if bluesky_mode:
-            print("Bluesky - go to zero")
+            logger.info("Bluesky - go to zero")
             beamline_safe.go_to_zero(wait=False)
         else:
-            for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.omega]:
+            logger.info("Moving all motors to zero")
+            for motor in [pv.gonio_y, pv.gonio_z, pv.stage_x, pv.stage_z, pv.omega]:
                 ca.caput(motor, 0)
 
     def handleZoom(self, zoomValue):
@@ -512,17 +591,33 @@ class MainWindow(QtWidgets.QMainWindow):
         Args:
             zoomValue (int): The new zoom level from the slider.
         """
+        logger.debug(f"Zoom level changed to {zoomValue}")
         self.zoomLevel = zoomValue
         self.ui.currentZoom.setText(str(self.zoomLevel))
         self.zoomChanged.emit(self.zoomLevel)
 
     def changeExposureGain(self):
-        ca.caput(pv.oav_cam_acqtime, (self.ui.sliderExposure.value() / 100))
-        ca.caput(pv.oav_cam_gain, self.ui.sliderGain.value())
+        exposure = self.ui.sliderExposure.value() / 100
+        gain = self.ui.sliderGain.value()
+        logger.debug(f"OAV: Changing exposure to {exposure}, gain to {gain}")
+        ca.caput(pv.oav_cam_acqtime, exposure)
+        ca.caput(pv.oav_cam_gain, gain)
 
     def go_to_max():
         bac.create_and_start_task(Task(name="go_to_furthest_maximum"))
     def jogSample(self, direction, amount=0.005):
+
+        if direction == "ZsPlus" or "ZsMinus" or "ZsZero":
+            jogVal = float(self.ui.spinBoxZsJogAmount.value() / 1000)
+            if direction == "ZsPlus":
+                logger.debug(f"Stage: Moving Z+ by {jogVal}")
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + jogVal))
+            elif direction == "ZsMinus":
+                logger.debug(f"Stage: Moving Z- by {jogVal}")
+                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - jogVal))
+            elif direction == "ZsZero":
+                logger.debug(f"Stage: Moving Z to zero")
+                ca.caput(pv.stage_z, float(0))
 
         if args.blueapi:
             bac.create_and_start_task(Task(
@@ -534,37 +629,61 @@ class MainWindow(QtWidgets.QMainWindow):
                 gonio = aithre.goniometer()
             RE = RunEngine({})
             RE(goniometer_controls.jog_sample(direction=direction, increment_size=amount, goniometer=gonio))
+
         else:
+            jogVal = float(self.ui.spinBoxZJogAmount.value() / 1000)
             if direction == "right":
-                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + 0.005))
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) + jogVal))
             elif direction == "left":
-                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - 0.005))
+                ca.caput(pv.stage_x, (float(ca.caget(pv.stage_x_rbv)) - jogVal))
             elif direction == "up":
                 ca.caput(
                     pv.gonio_y,
                     (float(ca.caget(pv.gonio_y_rbv)))
-                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
                 ca.caput(
                     pv.gonio_z,
                     (float(ca.caget(pv.gonio_z_rbv)))
-                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
             elif direction == "down":
                 ca.caput(
                     pv.gonio_y,
                     (float(ca.caget(pv.gonio_y_rbv)))
-                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
                 ca.caput(
                     pv.gonio_z,
                     (float(ca.caget(pv.gonio_z_rbv)))
-                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * 0.005,
+                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
                 )
             elif direction == "ZPlus":
-                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    - ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    + ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
             elif direction == "ZMinus":
-                ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
+                ca.caput(
+                    pv.gonio_y,
+                    (float(ca.caget(pv.gonio_y_rbv)))
+                    + ((math.cos(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+                ca.caput(
+                    pv.gonio_z,
+                    (float(ca.caget(pv.gonio_z_rbv)))
+                    - ((math.sin(math.radians(float(ca.caget(pv.omega_rbv)))))) * jogVal,
+                )
+            # elif direction == "ZPlus":
+            #     ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) + 0.05))
+            # elif direction == "ZMinus":
+            #     ca.caput(pv.stage_z, (float(ca.caget(pv.stage_z_rbv)) - 0.05))
             else:
                 pass
 
@@ -574,7 +693,7 @@ class MainWindow(QtWidgets.QMainWindow):
             gonio_request = 3600
         else:
             gonio_request = -3600
-        print("Moving gonio omega to", str(gonio_request))
+        logger.info(f"Moving gonio omega to {gonio_request}")
         ca.caput(pv.omega, gonio_request)
 
     def toggleCanvasMode(self, mode):
@@ -583,6 +702,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Args:
             mode (str): The mode to set, either 'move' or 'draw'.
         """
+        logger.debug(f"Canvas mode changed to '{mode}'")
         if mode == "move":
             self.canvasMode = "move"
         elif mode == "draw":
@@ -613,11 +733,11 @@ class MainWindow(QtWidgets.QMainWindow):
             y_curr = float(ca.caget(pv.gonio_y_rbv))
             z_curr = float(ca.caget(pv.gonio_z_rbv))
             omega = float(ca.caget(pv.omega_rbv))
-            print("Clicked", x, y)
+            logger.info(f"Clicked at x={x}, y={y}")
             Xmove = x_curr + ((x - self.xcent) * (calibrate / self.zoomclickcal))
             Ymove = y_curr + (math.sin(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
             Zmove = z_curr + (math.cos(math.radians(omega)) * ((y - self.ycent) * (calibrate / self.zoomclickcal)))
-            print("Moving", Xmove, Ymove, Zmove)
+            logger.info(f"Moving to X={Xmove}, Y={Ymove}, Z={Zmove}")
             ca.caput(pv.stage_x, round(Xmove, 4))
             ca.caput(pv.gonio_y, round(Ymove, 4))
             ca.caput(pv.gonio_z, round(Zmove, 4))
@@ -657,20 +777,69 @@ class MainWindow(QtWidgets.QMainWindow):
                 points_list.append((correctedX, correctedY, True))
         
         if points_list:
-            # with open(filename, 'w') as file:
-            #     for point in points_list:
-            #         file.write(f"{point[0]}, {point[1]}, {point[2]}\n")
             self.points_list = points_list * self.ui.spinBoxRepetitions.value() + ([(0, 0, False)])
-            self.rtc6.cut_polygon_from_gui(self.points_list)
-            print(self.points_list)
+            if not args.nortc6:
+                self.rtc6.cut_polygon_from_gui(self.points_list)
+                logger.info(f"Cutting polygon: {self.points_list}")
+            else:
+                logger.info("Running in no RTC6 mode, but here are the points that would have been cut:")
+                logger.info(f"Points: {self.points_list}")
         else:
-            print("No shapes to cut...")
+            logger.warning("No shapes to cut...")
+        
+    def loadPresetShape(self):
+        """Opens a file dialog to load a preset shape file and displays the filename.
+        """
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.DontUseNativeDialog
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self.ui.centralwidget,
+            "Select Preset Shape File",
+            "/dls/science/groups/i23/aithre/rtc6-fastcs/shape_protocols/",
+            "Text Files (*.txt);;All Files (*)",
+            options=options,
+        )
+        
+        if file_name:
+            display_name = os.path.basename(file_name)
+            display_name = os.path.splitext(display_name)[0]
+            if display_name.startswith("RTCExecutionlist_"):
+                display_name = display_name[len("RTCExecutionlist_"):]
+            self.ui.labPresetShapeFile.setText(display_name)
+            self.preset_file_path = file_name
+            logger.info(f"Preset shape file loaded: {file_name}")
+        else:
+            logger.debug("File selection cancelled")
+    
+    def setRTC6Speed(self, speed_text):
+        """Sets the RTC6 mark speed based on the comboBox selection.
+        
+        Args:
+            speed_text (str): The text from the comboBox (e.g., "0.005 m/s" or "Default")
+            This is converted from m/s to bits at fastcs level.
+        """
+        if speed_text == "Default" or not speed_text:
+            logger.debug("RTC6 speed: Default selected, no caput performed")
+            return
+        
+        if speed_text.endswith(" m/s"):
+            speed_value = speed_text[:-len(" m/s")]
+            try:
+                speed_float = float(speed_value)
+                logger.info(f"RTC6: Setting mark speed to {speed_float} m/s")
+                ca.caput(pv.rtc6eth_control_markspeed, speed_float)
+            except ValueError:
+                logger.error(f"RTC6: Invalid speed value '{speed_value}'")
+        else:
+            logger.warning(f"RTC6: Unexpected speed format '{speed_text}'")
         
                     
     def setupOAV(self):
         """Sets up the OAV camera parameters and disables unnecessary callbacks if not in development mode.
         """
+        logger.info("Setting up OAV camera")
         if not dev_mode:
+            logger.info("Disabling OAV callbacks")
             for callback in (
                 pv.oav_roi_ecb,
                 pv.oav_arr_ecb,
@@ -684,15 +853,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 ca.caput(callback, "Disable")
             ca.caput(pv.oav_mjpg_maxw, 4024)
             ca.caput(pv.oav_mjpg_maxh, 3036)
+            logger.info("OAV camera setup complete")
 
     def oavStart(self):
         """Starts the OAV acquisition by setting the appropriate EPICS PV.
         """
+        logger.info("OAV: Starting acquisition")
         ca.caput(pv.oav_acquire, "Acquire")
 
     def oavStop(self):
         """Stops the OAV acquisition by setting the appropriate EPICS PV.
         """
+        logger.info("OAV: Stopping acquisition")
         ca.caput(pv.oav_acquire, "Done")
 
     def setImage(self, image):
@@ -710,9 +882,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Prompts the user for a file name and saves the image using OpenCV.
         """
         image = self.image
-        print(f"Q image format: {image.format()}")
-        print(f"Q image bytes: {image.byteCount()}")
-        print(f"Q image bytes per line: {image.bytesPerLine()}")
+        logger.debug(f"Q image format: {image.format()}")
+        logger.debug(f"Q image bytes: {image.byteCount()}")
+        logger.debug(f"Q image bytes per line: {image.bytesPerLine()}")
         width = image.width()
         height = image.height()
         bytesPerLine = image.bytesPerLine()
@@ -735,11 +907,11 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 result = cv.imwrite(file_name, arr)
                 if result:
-                    print("Image saved successfully.")
+                    logger.info(f"Image saved successfully to {file_name}")
                 else:
-                    print("Failed to save image. Try as a .jpg")
+                    logger.error("Failed to save image. Try as a .jpg")
             except Exception as e:
-                print(f"An error occurred while saving the image: {e}")
+                logger.error(f"An error occurred while saving the image: {e}")
 
     def gonioRotate(self, amount):
         if args.blueapi:
@@ -752,14 +924,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 gonio_request = 0
             else:
                 gonio_request = gonio_current + amount
-            print("Moving gonio omega to", str(gonio_request))
+            logger.info(f"Moving gonio omega to {gonio_request}")
             ca.caput(pv.omega, gonio_request)
 
     def updateRBVs(self, rbvs):
-        # stagez, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagex, stagey
-        self.ui.stagez_rbv.setText(
+        # stagex, gony, gonz, omega, oavexp, oavgain, currentsamp, goniosens, stagez, stagey
+        self.ui.stagex_rbv.setText(
             str(round(float(rbvs[0]), 3))
-        )  # used to be x now is z
+        )  # x and z may be confused
+        self.ui.stagez_rbv.setText(str(round(float(rbvs[8]), 3)))
         self.ui.gony_rbv.setText(str(round(float(rbvs[1]), 3)))
         self.ui.gonz_rbv.setText(str(round(float(rbvs[2]), 3)))
         # stop -0.0 to 0.0 jitter on GUI
@@ -783,6 +956,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.indicatorGonioSensor.setStyleSheet("background-color: red")
 
     def autoCenter(self):
+        logger.info("Auto-centering pin tip")
         from dodal.devices.oav.pin_image_recognition import PinTipDetection
         with init_devices():
             gonio = aithre.goniometer()
@@ -791,6 +965,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         RE = RunEngine({})
         RE(aithre_pin_tip_centre(gonio=gonio, oav=oav, pin_tip_detection=p_t_d, tip_offset_microns=0))
+        logger.info("Auto-center complete")
     
         return None
 
@@ -804,3 +979,8 @@ if __name__ == "__main__":
     with loop:
         loop.run_forever()
     sys.exit(app.exec_())
+
+
+## TO DO:
+# work out why RTC6 is always acquired.
+# change rtc6-fastcs to take the file from shape_protocols rather than translating. this will be faster for multi passes.

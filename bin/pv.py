@@ -91,3 +91,7 @@ highmag_focus_tw_f = "LA18L-MO-LSR-01:FOCUS.TWF"
 
 # fake zoom pv
 zoom_dud = "LA18L-DI-ZOOM-01:IDONTEXIST"
+
+# RTC6 fastcs
+rtc6eth_info_is_acquired = "RTC6ETH:INFO:IsAcquired"
+rtc6eth_control_markspeed = "RTC6ETH:CONTROL:MarkSpeed"
