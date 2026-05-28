@@ -598,24 +598,24 @@ class MainWindow(QtWidgets.QMainWindow):
             RE = RunEngine({})
             goniometer.omega.stop()
         else:
-            ca.caput(pv.robot_reset, 1)
+            ca.caput(pv.robot_reset, 1, True)
             time.sleep(3)
             ca.caput(pv.robot_next_pin, pin_number)
             time.sleep(3)
-            ca.caput(pv.robot_proc_load, 1)
+            ca.caput(pv.robot_proc_load, 1, True)
             logger.info(f"Robot: Load command sent for pin {pin_number}")
 
     def unloadPin(self):
         logger.info("Robot: Unloading pin")
-        ca.caput(pv.robot_reset, 1)
+        ca.caput(pv.robot_reset, 1, True)
         time.sleep(3)
-        ca.caput(pv.robot_proc_unload, 1)
+        ca.caput(pv.robot_proc_unload, 1, True)
 
     def dryGripper(self):
         logger.info("Robot: Drying gripper")
-        ca.caput(pv.robot_reset, 1)
+        ca.caput(pv.robot_reset, 1, True)
         time.sleep(3)
-        ca.caput(pv.robot_proc_dry, 1)
+        ca.caput(pv.robot_proc_dry, 1, True)
 
     def quit(self):
         """Quits the application gracefully.
